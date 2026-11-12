@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إعدادات الأوسمة - لوحة المدير</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #d81b60; --bg: #f4f7f6; --text: #1e293b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 5px solid var(--primary); }
+        h1 { color: var(--primary); font-size: 20px; margin-bottom: 15px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+        th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: center; }
+        th { background: #f8fafc; color: var(--primary); }
+        input[type="number"], input[type="text"] { width: 100px; padding: 5px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; font-family: 'Cairo'; }
+        .btn { background: var(--primary); color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; }
+        .btn:hover { opacity: 0.9; }
+        .top-toast { position: fixed; top: 15px; left: 50%; transform: translateX(-50%) translateY(-50px); background: #1e293b; color: white; padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: bold; z-index: 300; opacity: 0; transition: 0.3s; }
+        .top-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="top-toast" id="topToast">تم الحفظ بنجاح</div>
+
+    <div class="container">
+        <!-- شريط التنقل العلوي الموحد -->
+        <div id="admin-nav-container"></div>
+
+        <h1>⚙️ إعدادات نقاط وشروط الأوسمة</h1>
+        <p style="font-size: 12px; color: #64748b; text-align: center; margin-bottom: 15px;">من هنا يمكنك التحكم بالنقاط المطلوبة لكل وسام تدريجي يظهر للطلاب.</p>
+
+        <table id="badgesTable">
+            <thead>
+                <tr>
+                    <th>مفتاح الوسام</th>
+                    <th>اسم الوسام</th>
+                    <th>النقاط المطلوبة</th>
+                    <th>الإجراء</th>
+                </tr>
+            </thead>
+            <tbody id="badgesBody">
+                <tr><td colspan="4">جاري التحميل...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- استدعاء القائمة العلوية الموحدة -->
+    <script src="navbar.js"></script>
+
+    <script>
+        function showTopToast(msg) {
+            const t = document.getElementById('topToast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 1500);
+        }
+
+        async function fetchBadgesSettings() {
+            try {
+                const { data, error } = await supabaseClient.from('badge_settings').select('*').order('required_points', { ascending: true });
+                if (error) throw error;
+
+                const tbody = document.getElementById('badgesBody');
+                tbody.innerHTML = '';
+                if (data && data.length > 0) {
+                    data.forEach(b => {
+                        let tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td><code>${b.badge_key}</code></td>
+                            <td><b>${b.badge_name}</b></td>
+                            <td><input type="number" id="pts_${b.badge_key}" value="${b.required_points}"></td>
+                            <td><button class="btn" onclick="updateBadge('${b.badge_key}')">حفظ التعديل</button></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4">لا توجد إعدادات مسجلة</td></tr>';
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('badgesBody').innerHTML = '<tr><td colspan="4" style="color:red;">خطأ في الاتصال بالسحابة</td></tr>';
+            }
+        }
+
+        async function updateBadge(key) {
+            let val = parseInt(document.getElementById(`pts_${key}`).value);
+            if (isNaN(val)) { alert('يرجى إدخال رقم صحيح'); return; }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('badge_settings')
+                    .update({ required_points: val })
+                    .eq('badge_key', key);
+
+                if (error) throw error;
+                showTopToast('✅ تم تحديث إعدادات الوسام بنجاح!');
+            } catch (e) {
+                alert('خطأ أثناء الحفظ: ' + e.message);
+            }
+        }
+
+        fetchBadgesSettings();
+    </script>
+</body>
+</html>
