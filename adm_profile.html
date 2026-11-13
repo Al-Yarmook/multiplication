@@ -20,9 +20,6 @@
         .container { max-width: 1200px; margin: 0 auto; }
         header { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-top: 4px solid var(--primary); }
         h1 { color: var(--primary); margin: 0; font-size: 24px; font-weight: 900; }
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 10px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; font-family: 'Cairo'; text-decoration: none; display: inline-block; font-size: 14px; }
-        .tab-btn.active, .tab-btn:hover { background: var(--primary); color: white; }
         .section-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Cairo'; transition: 0.3s; text-decoration: none; display: inline-block; }
         .btn:hover { background: var(--primary-hover); }
@@ -44,16 +41,8 @@
             <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
         </header>
 
-        <!-- شريط التبويبات الموحد (تم إضافة تبويب التقارير الشاملة) -->
-        <div class="nav-tabs" id="navTabs">
-            <a href="adm_students.html" class="tab-btn role-admin-sup">👥 بيانات الطلاب</a>
-            <a href="adm_teachers.html" class="tab-btn role-admin-sup">👨‍🏫 إدارة المعلمين</a>
-            <a href="adm_games.html" class="tab-btn role-admin-sup">🎮 إعدادات الألعاب</a>
-            <a href="adm_scores.html" class="tab-btn role-admin-sup-teacher">📊 درجات الطلاب</a>
-            <a href="adm_reports.html" class="tab-btn">📈 التقارير الشاملة</a>
-            <a href="adm_reset.html" class="tab-btn admin-only-tab">⚙️ تصفير النتائج</a>
-            <a href="adm_profile.html" class="tab-btn active">👤 بياناتي الشخصية</a>
-        </div>
+        <!-- شريط التنقل العلوي الموحد (يتم حقنه تلقائياً عبر navbar.js) -->
+        <div id="admin-nav-container"></div>
 
         <div class="section-card">
             <h2>الملف الشخصي وتعديل بيانات الحساب 👤</h2>
@@ -89,6 +78,9 @@
         إعداد أ. صادق القلعاوي | مدرسة اليرموك الابتدائية للبنين 🏫✨
     </footer>
 
+    <!-- استدعاء ملف القائمة الموحدة -->
+    <script src="navbar.js"></script>
+
     <script>
         let currentUser = JSON.parse(localStorage.getItem('current_staff_user'));
 
@@ -98,14 +90,6 @@
             const roleVal = String(currentUser.role || 'Teacher').trim().toLowerCase();
             const roleName = (roleVal === 'admin' || roleVal === 'مدير') ? 'مدير النظام' : (roleVal === 'supervisor' || roleVal === 'مشرف') ? 'مشرف' : 'معلم';
             document.getElementById('welcomeTitle').textContent = `بياناتي الشخصية (${currentUser.name || 'مستخدم'} - ${roleName})`;
-
-            // إذا كان المستخدم معلماً، يتم إخفاء تبويبات الإدارة غير المخصصة له
-            if(roleVal === 'teacher' || roleVal === 'معلم') {
-                document.querySelectorAll('.role-admin-sup').forEach(el => el.classList.add('hidden'));
-                document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.add('hidden'));
-            } else if(roleVal === 'supervisor' || roleVal === 'مشرف') {
-                document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.add('hidden'));
-            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
