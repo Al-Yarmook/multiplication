@@ -1,11 +1,11 @@
-// navbar.js - شريط التنقل الموحد لمدير النظام والمشرفين
+// navbar.js - شريط التنقل الموحد لمدير النظام والمشرفين والمعلمين
 document.addEventListener("DOMContentLoaded", function() {
     const navContainer = document.getElementById('admin-nav-container');
     if (!navContainer) return;
 
     const currentPage = window.location.pathname.split("/").pop();
 
-    // 1. تحديد دور المستخدم واستخراج بيانات الجلسة الصحيحة ('current_staff_user')
+    // 1. تحديد دور المستخدم واستخراج بيانات الجلسة ('current_staff_user')
     let userRole = "admin"; // القيم الافتراضية
     try {
         const storedUser = JSON.parse(localStorage.getItem('current_staff_user') || '{}');
@@ -17,15 +17,15 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     } catch (e) {}
 
-    // 2. تعريف الأقسام والصلاحيات بأسماء الملفات الفعلية الصحيحة
+    // 2. تعريف الأقسام والصلاحيات بأسماء الملفات الفعلية الصحيحة تماماً
     const navItems = [
-        { href: "adm_students.html", title: "ادارة الطلاب", icon: "👥", allowedFor: ["admin", "supervisor"] },
+        { href: "adm_students.html", title: "بيانات الطلاب", icon: "👥", allowedFor: ["admin", "supervisor"] },
         { href: "adm_teachers.html", title: "إدارة المعلمين", icon: "👨‍🏫", allowedFor: ["admin", "supervisor"] },
         { href: "adm_games.html", title: "إعدادات الألعاب", icon: "🎮", allowedFor: ["admin", "supervisor"] },
-        { href: "adm_badges.html", title: "إعدادات الأوسمة", icon: "🏅", allowedFor: ["admin", "supervisor"] }, // شاشة الأوسمة
+        { href: "adm_badges.html", title: "إعدادات الأوسمة", icon: "🏅", allowedFor: ["admin", "supervisor"] },
         { href: "adm_scores.html", title: "درجات الطلاب", icon: "📊", allowedFor: ["admin", "supervisor", "teacher"] },
-        { href: "adm_reports.html", title: "التقارير ", icon: "📈", allowedFor: ["admin", "supervisor", "teacher"] },
-        { href: "adm_reset.html", title: "تصفير النتائج", icon: "⚙️", allowedFor: ["admin"] }, // مدير النظام فقط
+        { href: "adm_reports.html", title: "التقارير", icon: "📈", allowedFor: ["admin", "supervisor", "teacher"] },
+        { href: "adm_reset.html", title: "تصفير النتائج", icon: "⚙️", allowedFor: ["admin"] },
         { href: "adm_profile.html", title: "بياناتي الشخصية", icon: "👤", allowedFor: ["admin", "supervisor", "teacher"] }
     ];
 
