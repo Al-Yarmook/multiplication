@@ -20,9 +20,6 @@
         .container { max-width: 1300px; margin: 0 auto; }
         header { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-top: 4px solid var(--primary); }
         h1 { color: var(--primary); margin: 0; font-size: 24px; font-weight: 900; }
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 10px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; font-family: 'Cairo'; text-decoration: none; display: inline-block; font-size: 14px; }
-        .tab-btn.active, .tab-btn:hover { background: var(--primary); color: white; }
         
         .section-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .collapse-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; }
@@ -57,16 +54,8 @@
             <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
         </header>
 
-        <!-- شريط التبويبات العلوي -->
-        <div class="nav-tabs">
-            <a href="adm_students.html" class="tab-btn">👥 بيانات الطلاب</a>
-            <a href="adm_teachers.html" class="tab-btn active">👨‍🏫 إدارة المعلمين</a>
-            <a href="adm_games.html" class="tab-btn">🎮 إعدادات الألعاب</a>
-            <a href="adm_scores.html" class="tab-btn">📊 درجات الطلاب</a>
-            <a href="adm_reports.html" class="tab-btn">📈 التقارير الشاملة</a>
-            <a href="adm_reset.html" class="tab-btn">⚙️ تصفير النتائج</a>
-            <a href="adm_profile.html" class="tab-btn">👤 بياناتي الشخصية</a>
-        </div>
+        <!-- مكان ظهور شريط التنقل العلوي الموحد -->
+        <div id="admin-nav-container"></div>
 
         <!-- لوحة إضافة معلم / مشرف جديد (قابلة للطي) -->
         <div class="section-card">
@@ -143,7 +132,7 @@
                 <h2 style="margin:0;">🏫 جدول توزيع المعلمين على الصفوف (table: class_teachers)</h2>
                 <button class="btn btn-green" onclick="saveClassAssignmentsInCloud()" style="font-size: 14px; padding: 8px 18px;">💾 حفظ وتحديث توزيع الصفوف في السحابة</button>
             </div>
-            <p style="color: #64748b; font-size: 13px; margin-bottom: 10px;">هذا الجدول مستقل تماماً ويقوم بمزامنة ارتباط الصف بالمعلم في جدول <code>class_teachers</code> بالسحابة.</p>
+            <p style="color: #64748b; font-size: 13px; margin-bottom: 10px;">هذا الجدول مستقل تماماً يقوم بمزامنة ارتباط الصف بالمعلم في جدول <code>class_teachers</code> بالسحابة.</p>
             
             <table id="classTeachersTable">
                 <thead>
@@ -163,6 +152,9 @@
     <footer class="author-footer">
         إعداد أ. صادق القلعاوي | مدرسة اليرموك الابتدائية للبنين 🏫✨
     </footer>
+
+    <!-- استدعاء ملف القائمة الموحدة -->
+    <script src="navbar.js"></script>
 
     <script>
         let currentUser = JSON.parse(localStorage.getItem('current_staff_user'));
