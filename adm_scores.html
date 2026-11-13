@@ -21,9 +21,7 @@
         .container { max-width: 1200px; margin: 0 auto; }
         header { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-top: 4px solid var(--primary); }
         h1 { color: var(--primary); margin: 0; font-size: 24px; font-weight: 900; }
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 10px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; font-family: 'Cairo'; text-decoration: none; display: inline-block; font-size: 14px; }
-        .tab-btn.active, .tab-btn:hover { background: var(--primary); color: white; }
+        
         .section-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-size: 13px; }
@@ -50,16 +48,8 @@
             <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
         </header>
 
-        <!-- شريط التبويبات الموحد -->
-        <div class="nav-tabs" id="navTabs">
-            <a href="adm_students.html" class="tab-btn role-admin-sup">👥 بيانات الطلاب</a>
-            <a href="adm_teachers.html" class="tab-btn role-admin-sup">👨‍🏫 إدارة المعلمين</a>
-            <a href="adm_games.html" class="tab-btn role-admin-sup">🎮 إعدادات الألعاب</a>
-            <a href="adm_scores.html" class="tab-btn active">📊 درجات الطلاب</a>
-            <a href="adm_reports.html" class="tab-btn">📈 التقارير الشاملة</a>
-            <a href="adm_reset.html" class="tab-btn admin-only-tab">⚙️ تصفير النتائج</a>
-            <a href="adm_profile.html" class="tab-btn">👤 بياناتي الشخصية</a>
-        </div>
+        <!-- مكان ظهور شريط التنقل العلوي الموحد -->
+        <div id="admin-nav-container"></div>
 
         <div class="section-card">
             <h2>سجل درجات الطلاب ولوحة الصدارة 📊</h2>
@@ -107,6 +97,9 @@
         إعداد أ. صادق القلعاوي | مدرسة اليرموك الابتدائية للبنين 🏫✨
     </footer>
 
+    <!-- استدعاء ملف القائمة الموحدة -->
+    <script src="navbar.js"></script>
+
     <script>
         let currentUser = JSON.parse(localStorage.getItem('current_staff_user'));
         let teacherClassesFromCloud = [];
@@ -149,7 +142,6 @@
                         teacherClassesFromCloud = data.map(item => String(item.cls).trim());
                         document.getElementById('filterNotice').textContent = `* تظهر لك درجات طلاب صفوفك المسندة بالسحابة فقط: (${teacherClassesFromCloud.join(', ')})`;
                     } else if (currentUser.classes) {
-                        // استخدام الصفوف المحلية كخطة بديلة إذا لم يُعثر على بيانات في class_teachers
                         teacherClassesFromCloud = currentUser.classes.split(',').map(c => c.trim());
                         document.getElementById('filterNotice').textContent = `* تظهر لك درجات طلاب صفوفك فقط: (${teacherClassesFromCloud.join(', ')})`;
                     } else {
@@ -197,10 +189,9 @@
                 let displayedCount = 0;
 
                 data.forEach(sc => {
-                    // فلترة نتائج المعلم حسب الصفوف الجلبة من جدول class_teachers
                     if(isTeacher) {
                         if(!sc.cls || !teacherClassesFromCloud.includes(String(sc.cls).trim())) {
-                            return; // تخطي الطالب إن لم يكن ضمن الصفوف المسندة للمعلم
+                            return; 
                         }
                     }
 
