@@ -21,9 +21,7 @@
         .container { max-width: 1200px; margin: 0 auto; }
         header { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-top: 4px solid var(--primary); }
         h1 { color: var(--primary); margin: 0; font-size: 24px; font-weight: 900; }
-        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-        .tab-btn { background: white; border: 2px solid var(--primary); color: var(--primary); padding: 10px 18px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; font-family: 'Cairo'; text-decoration: none; display: inline-block; font-size: 14px; }
-        .tab-btn.active, .tab-btn:hover { background: var(--primary); color: white; }
+        
         .section-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin-top: 15px; }
         th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-size: 13px; }
@@ -55,16 +53,8 @@
             <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
         </header>
 
-        <!-- شريط التبويبات الموحد لجميع الصفحات (تم إضافة تبويب التقارير الشاملة) -->
-        <div class="nav-tabs" id="navTabs">
-            <a href="adm_students.html" class="tab-btn active role-admin role-supervisor">👥 بيانات الطلاب</a>
-            <a href="adm_teachers.html" class="tab-btn role-admin role-supervisor">👨‍🏫 إدارة المعلمين</a>
-            <a href="adm_games.html" class="tab-btn role-admin role-supervisor">🎮 إعدادات الألعاب</a>
-            <a href="adm_scores.html" class="tab-btn role-admin role-supervisor role-teacher">📊 درجات الطلاب</a>
-            <a href="adm_reports.html" class="tab-btn role-admin role-supervisor role-teacher">📈 التقارير الشاملة</a>
-            <a href="adm_reset.html" class="tab-btn role-admin">⚙️ تصفير النتائج</a>
-            <a href="adm_profile.html" class="tab-btn role-admin role-supervisor role-teacher">👤 بياناتي الشخصية</a>
-        </div>
+        <!-- مكان ظهور شريط التنقل العلوي الموحد -->
+        <div id="admin-nav-container"></div>
 
         <div class="section-card">
             <h2>إدارة بيانات الطلاب 🎓</h2>
@@ -104,6 +94,9 @@
     <footer class="author-footer">
         إعداد أ. صادق القلعاوي | مدرسة اليرموك الابتدائية للبنين 🏫✨
     </footer>
+
+    <!-- استدعاء ملف القائمة الموحدة -->
+    <script src="navbar.js"></script>
 
     <script>
         let currentUser = JSON.parse(localStorage.getItem('current_staff_user'));
@@ -145,7 +138,6 @@
                     let rowId = s.id || s.cpr;
                     if(!rowId) return;
 
-                    // إنشاء زر الحذف فقط للمدير
                     let deleteBtnHTML = isAdmin ? `<button class="btn btn-red" onclick="deleteStudent('${rowId}')">حذف 🗑️</button>` : '';
 
                     tbody.innerHTML += `
