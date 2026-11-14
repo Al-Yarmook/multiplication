@@ -17,14 +17,14 @@
             --text: #1e293b;
         }
         * { box-sizing: border-box; }
-        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .container { max-width: 1200px; margin: 0 auto; width: 100%; }
         
-        header { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-top: 4px solid var(--primary); }
-        h1 { color: var(--primary); margin: 0; font-size: 24px; font-weight: 900; }
+        header { background: white; padding: 15px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-top: 4px solid var(--primary); flex-wrap: wrap; gap: 10px; }
+        h1 { color: var(--primary); margin: 0; font-size: 22px; font-weight: 900; }
 
-        .section-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .section-card h2 { color: var(--primary); font-size: 18px; margin-bottom: 15px; font-weight: 800; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
+        .section-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .section-card h2 { color: var(--primary); font-size: 17px; margin-bottom: 15px; font-weight: 800; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
 
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
         .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 220px; }
@@ -65,13 +65,14 @@
 
         .options-row {
             display: flex;
-            gap: 20px;
+            gap: 15px;
             background: #f8fafc;
             padding: 12px 15px;
             border-radius: 8px;
             border: 1px solid #cbd5e1;
             align-items: center;
             margin-top: 10px;
+            flex-wrap: wrap;
         }
         .checkbox-label { 
             display: inline-flex; 
@@ -84,7 +85,7 @@
             white-space: nowrap; 
         }
 
-        .checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0; }
 
         .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Cairo'; transition: 0.3s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; }
         .btn:hover { background: var(--primary-hover); }
@@ -96,9 +97,9 @@
         .btn-red:hover { background: #b71c1c; }
         .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 6px; }
 
-        .report-preview-area { background: white; padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px solid #e2e8f0; }
+        .report-preview-area { background: white; padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px solid #e2e8f0; overflow-x: auto; }
         
-        /* تصميم صفحة التقرير لتناسب الشاشات والطباعة والهواتف بدقة مطلقة */
+        /* إطار صفحة التقرير الموحد لضمان التوافق مع الهواتف والكمبيوتر */
         .report-single-page { 
             box-sizing: border-box;
             background: #ffffff;
@@ -107,7 +108,8 @@
             padding: 12px 16px;
             margin-bottom: 25px;
             width: 100%;
-            position: relative;
+            max-width: 100%;
+            display: block;
         }
 
         .report-header-box {
@@ -117,12 +119,13 @@
             border-bottom: 2px solid var(--primary);
             padding-bottom: 6px;
             margin-bottom: 8px;
+            gap: 5px;
         }
-        .report-header-right { font-size: 9.5pt; font-weight: bold; color: #475569; line-height: 1.25; width: 33%; }
+        .report-header-right { font-size: 9pt; font-weight: bold; color: #475569; line-height: 1.25; width: 33%; }
         .report-header-center { text-align: center; width: 34%; }
-        .report-logo { max-height: 26px; display: block; margin: 0 auto 2px auto; object-fit: contain; }
-        .report-title { font-size: 11pt; font-weight: 900; color: var(--primary); white-space: nowrap; }
-        .report-header-left { font-size: 9.5pt; font-weight: bold; color: #475569; text-align: left; line-height: 1.25; width: 33%; }
+        .report-logo { max-height: 24px; display: block; margin: 0 auto 2px auto; object-fit: contain; }
+        .report-title { font-size: 10.5pt; font-weight: 900; color: var(--primary); white-space: nowrap; }
+        .report-header-left { font-size: 9pt; font-weight: bold; color: #475569; text-align: left; line-height: 1.25; width: 33%; }
         
         .report-meta-bar {
             display: flex;
@@ -131,16 +134,18 @@
             padding: 5px 10px;
             border-radius: 6px;
             margin-bottom: 10px;
-            font-size: 9.5pt;
+            font-size: 9pt;
             font-weight: bold;
             color: #831843;
             border: 1px solid #fbcfe8;
+            flex-wrap: wrap;
+            gap: 5px;
         }
 
-        .table-container { margin-bottom: 12px; }
+        .table-container { margin-bottom: 10px; width: 100%; overflow-x: auto; }
 
-        .report-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
-        .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: center; line-height: 1.25; }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; min-width: 400px; }
+        .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 4px 5px; text-align: center; line-height: 1.2; }
         .report-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 9pt; border-bottom: 2px solid var(--primary); }
         .report-table tr:nth-child(even) { background-color: #fafaf9; }
 
@@ -149,7 +154,7 @@
             border-collapse: collapse; 
             border: none !important; 
             background: #ffffff;
-            margin-top: 15px;
+            margin-top: 10px;
             padding-top: 6px;
             border-top: 1px dashed #cbd5e1 !important;
         }
@@ -159,27 +164,25 @@
         .hidden { display: none !important; }
         footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
 
-        /* إعدادات الطباعة الدقيقة لمنع الصفحات الفارغة وتثبيت الفوتر أسفل كل شعبة */
+        /* إعدادات الطباعة الحكيمة والنهائية لمنع الصفحات الفارغة وضمان صفحة واحدة لكل شعبة */
         @media print {
-            @page { size: A4 portrait; margin: 8mm; }
-            body { background: white !important; padding: 0 !important; margin: 0 !important; }
+            @page { size: A4 portrait; margin: 6mm; }
+            body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
             header, .section-card:not(#reportOutputCard), .btn-row, .nav-tabs, footer.author-footer, #reportHeaderTitleCard, #admin-nav-container, nav { display: none !important; }
-            .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
-            .report-preview-area { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; }
+            .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
+            .report-preview-area { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: transparent !important; }
             
             .report-single-page { 
                 margin: 0 !important;
-                padding: 5mm 0 !important;
+                padding: 4mm 2mm !important;
                 border: none !important;
                 border-radius: 0 !important;
+                width: 100% !important;
                 page-break-inside: avoid !important;
                 break-inside: avoid !important;
                 page-break-after: always !important;
                 break-after: page !important;
-                height: 97vh !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: space-between !important;
+                display: block !important;
             }
             .report-single-page:last-of-type {
                 page-break-after: avoid !important;
@@ -304,9 +307,9 @@
         </div>
 
         <div class="section-card hidden" id="reportOutputCard">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;" id="reportHeaderTitleCard">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;" id="reportHeaderTitleCard">
                 <h2 style="border:none; margin:0; padding:0;">خيارات التصدير 📄</h2>
-                <div style="display: flex; gap: 8px;">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button class="btn btn-green" onclick="exportToExcel()">📊 تصدير إلى Excel</button>
                     <button class="btn btn-dark" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
                 </div>
