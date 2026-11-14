@@ -89,14 +89,12 @@
         }
         .more-btn:hover { background: var(--primary); color: white; border-style: solid; }
 
-        /* شبكة أفقية مصغرة لعرض الصفوف بجانب بعضها البعض بحجم أصغر */
         .active-grid { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
             gap: 12px; 
         }
 
-        /* شبكة أفقية مصغرة لعرض لوحات الألعاب بجانب بعضها في صف واحد */
         .games-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -112,7 +110,6 @@
         }
         .mini-board h3 { color: #1565c0; font-size: 14px; margin-bottom: 8px; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
 
-        /* بطاقات الأبطال على مستوى المدرسة */
         .school-champions-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -161,7 +158,7 @@
 
     <div class="container">
         
-        <!-- قسم الأبطال على مستوى المدرسة (الأسبوعي والشهري) -->
+        <!-- أبطال التفعيل (المدرسة) -->
         <div class="board-card">
             <div class="board-title">🌟 أبطال التفعيل على مستوى المدرسة</div>
             <div class="school-champions-grid">
@@ -201,12 +198,11 @@
             <button class="more-btn hidden" id="moreCombined" onclick="toggleMore('combined')">عرض المزيد 👇</button>
         </div>
 
-        <!-- لوحات صدارة الألعاب (مرتبة في صف واحد كبطاقات مصغرة بحجم أصغر) -->
+        <!-- لوحات صدارة الألعاب -->
         <div class="board-card">
             <div class="board-title">🎮 صدارة الألعاب التنافسية</div>
             <div class="games-grid">
                 
-                <!-- صواريخ الفضاء -->
                 <div class="mini-board">
                     <h3>🚀 صواريخ الفضاء</h3>
                     <div class="rank-list" id="rocketList">
@@ -215,7 +211,6 @@
                     <button class="more-btn hidden" id="moreRocket" onclick="toggleMore('rocket')">عرض المزيد 👇</button>
                 </div>
 
-                <!-- منجم الذهب -->
                 <div class="mini-board">
                     <h3>⛏️ منجم الذهب</h3>
                     <div class="rank-list" id="mineList">
@@ -224,7 +219,6 @@
                     <button class="more-btn hidden" id="moreMine" onclick="toggleMore('mine')">عرض المزيد 👇</button>
                 </div>
 
-                <!-- الصعود نحو القمة -->
                 <div class="mini-board">
                     <h3>🧗‍♂️ الصعود نحو القمة</h3>
                     <div class="rank-list" id="mountainList">
@@ -233,7 +227,6 @@
                     <button class="more-btn hidden" id="moreMountain" onclick="toggleMore('mountain')">عرض المزيد 👇</button>
                 </div>
 
-                <!-- الحية والدرج -->
                 <div class="mini-board">
                     <h3>🐍 الحية والدرج</h3>
                     <div class="rank-list" id="snakeList">
@@ -284,6 +277,7 @@
                 let allCombined = [...rocketList, ...mineList, ...mountainList, ...snakeList];
                 let combinedBest = {};
                 allCombined.forEach(item => {
+                    if ((item.points || 0) <= 0) return; // استبعاد أصحاب النقاط صفر
                     let key = item.student_name + '_' + item.cls;
                     if (!combinedBest[key] || item.points > combinedBest[key].points) combinedBest[key] = item;
                 });
@@ -307,24 +301,40 @@
             let monthlyMap = {};
 
             allRecords.forEach(item => {
+                let pts = item.points || 0;
+                if (pts <= 0) return; // استبعاد الصفر تماماً
+
                 let d = item.created_at ? new Date(item.created_at) : new Date();
                 let key = item.student_name + '_' + item.cls;
 
+                // تصفية الأسبوع الفائت حصرياً (آخر 7 أيام)
                 if (d >= oneWeekAgo) {
-                    if (!weeklyMap[key]) weeklyMap[key] = { student_name: item.student_name, cls: item.cls, points: 0, count: 0 };
-                    weeklyMap[key].points += item.points || 0;
+                    if (!weeklyMap[key]) weeklyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
+                    weeklyMap[key].totalPoints = Math.max(weeklyMap[key].totalPoints, pts);
                     weeklyMap[key].count += 1;
                 }
 
+                // تصفية الشهري
                 if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-                    if (!monthlyMap[key]) monthlyMap[key] = { student_name: item.student_name, cls: item.cls, points: 0, count: 0 };
-                    monthlyMap[key].points += item.points || 0;
+                    if (!monthlyMap[key]) monthlyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
+                    monthlyMap[key].totalPoints = Math.max(monthlyMap[key].totalPoints, pts);
                     monthlyMap[key].count += 1;
                 }
             });
 
-            let weeklyArr = Object.values(weeklyMap).sort((a, b) => b.points - a.points || b.count - a.count);
-            let monthlyArr = Object.values(monthlyMap).sort((a, b) => b.points - a.points || b.count - a.count);
+            // تطبيق الوزن الخاص للترتيب (النقاط مضروبة في عدد المرات + النقاط) مع الحفاظ على عرض النقاط والمرات الحقيقية فقط
+            let evaluateAndSort = (mapObj) => {
+                return Object.values(mapObj).map(u => ({
+                    student_name: u.student_name,
+                    cls: u.cls,
+                    points: u.totalPoints,
+                    count: u.count,
+                    customScore: (u.totalPoints * u.count) + u.totalPoints
+                })).sort((a, b) => b.customScore - a.customScore);
+            };
+
+            let weeklyArr = evaluateAndSort(weeklyMap);
+            let monthlyArr = evaluateAndSort(monthlyMap);
 
             document.getElementById('schoolWeeklyChamp').textContent = weeklyArr.length > 0 ? `${weeklyArr[0].student_name} (${weeklyArr[0].cls})` : 'لا توجد بيانات هذا الأسبوع';
             document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
@@ -353,11 +363,11 @@
 
             ['4', '5', '6'].forEach(key => {
                 let group = gradeGroups[key];
-                let studentsArr = group.students.sort((a, b) => b.points - a.points || b.count - a.count);
+                let studentsArr = group.students; // تم فرزها مسبقاً بناءً على customScore
 
                 let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
                 if (studentsArr.length === 0) {
-                    miniHTML += `<div style="text-align:center; color:#666; padding:6px; font-size:11px;">لا توجد نشاطات مسجلة</div>`;
+                    miniHTML += `<div style="text-align:center; color:#666; padding:6px; font-size:11px;">لا توجد نشاطات مسجلة هذا الأسبوع</div>`;
                 } else {
                     studentsArr.slice(0, 5).forEach((st, idx) => {
                         let rankStr = rankNames[idx] || `المركز ${idx + 1}`;
@@ -376,8 +386,10 @@
         function renderGameList(gameKey, list) {
             let bestMap = {};
             list.forEach(item => {
+                let pts = item.points || 0;
+                if (pts <= 0) return; // استبعاد أصحاب النقاط صفر
                 let key = item.student_name + '_' + item.cls;
-                if (!bestMap[key] || item.points > bestMap[key].points) bestMap[key] = item;
+                if (!bestMap[key] || pts > bestMap[key].points) bestMap[key] = item;
             });
             let sortedArr = Object.values(bestMap).sort((a, b) => b.points - a.points);
             rawDataStore[gameKey] = sortedArr;
@@ -400,34 +412,4 @@
             for (let i = 0; i < maxDisplayLimit; i++) {
                 let row = dataArr[i];
                 let rankText = rankNames[i] || (i + 1);
-                let topClass = i === 0 ? 'top-1' : i === 1 ? 'top-2' : i === 2 ? 'top-3' : '';
-
-                html += `
-                    <div class="rank-item ${topClass}">
-                        <span><b>${rankText}</b>: ${row.student_name} (${row.cls})</span>
-                        <span style="color: #2e7d32; font-weight: bold; font-size:11px;">${row.points} ن</span>
-                    </div>
-                `;
-            }
-
-            container.innerHTML = html;
-
-            if (dataArr.length > 5) {
-                moreBtn.classList.remove('hidden');
-                moreBtn.textContent = showAllState[gameKey] ? 'إخفاء 👆' : 'المزيد 👇';
-            } else {
-                moreBtn.classList.add('hidden');
-            }
-        }
-
-        function toggleMore(gameKey) {
-            showAllState[gameKey] = !showAllState[gameKey];
-            renderListUI(gameKey, rawDataStore[gameKey]);
-        }
-
-        function capitalize(s) {
-            return s.charAt(0).toUpperCase() + s.slice(1);
-        }
-    </script>
-</body>
-</html>
+                let topClass = i === 0 ? 'top-1' : i === 1 ? 'top-2' : i === 2 ? 'top
