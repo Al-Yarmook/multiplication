@@ -98,20 +98,18 @@
 
         .report-preview-area { background: white; padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px solid #e2e8f0; }
         
-        /* ضبط الصفحة الواحدة بدقة للطباعة والـ PDF */
         .report-single-page { 
             box-sizing: border-box;
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 10px;
-            padding: 12px 16px;
-            margin-bottom: 25px;
+            padding: 10px 14px;
+            margin-bottom: 20px;
             page-break-after: always;
             break-after: page;
             page-break-inside: avoid;
             break-inside: avoid;
             width: 100%;
-            position: relative;
         }
 
         .report-single-page:last-of-type {
@@ -126,7 +124,7 @@
             align-items: center;
             border-bottom: 2px solid var(--primary);
             padding-bottom: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
         .report-header-right { font-size: 9.5pt; font-weight: bold; color: #475569; line-height: 1.25; width: 33%; }
         .report-header-center { text-align: center; width: 34%; }
@@ -138,19 +136,21 @@
             display: flex;
             justify-content: space-between;
             background: #fdf2f8;
-            padding: 5px 10px;
+            padding: 4px 8px;
             border-radius: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-size: 9.5pt;
             font-weight: bold;
             color: #831843;
             border: 1px solid #fbcfe8;
         }
 
-        .table-container { margin-bottom: 12px; }
+        .table-container {
+            margin-bottom: 8px;
+        }
 
         .report-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
-        .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 3px 4px; text-align: center; line-height: 1.2; }
+        .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 2.5px 3px; text-align: center; line-height: 1.15; }
         .report-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 9pt; border-bottom: 2px solid var(--primary); }
         .report-table tr:nth-child(even) { background-color: #fafaf9; }
 
@@ -159,8 +159,8 @@
             border-collapse: collapse; 
             border: none !important; 
             background: #ffffff;
-            margin-top: 15px;
-            padding-top: 6px;
+            margin-top: 10px;
+            padding-top: 4px;
             border-top: 1px dashed #cbd5e1 !important;
         }
         .footer-table td { border: none !important; padding: 2px; text-align: center; vertical-align: top; width: 20%; background: transparent; }
@@ -169,11 +169,10 @@
         .hidden { display: none !important; }
         footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
 
-        /* إعدادات الطباعة الدقيقة لتجنب الصفحات الفارغة وضمان بقاء الفوتر أسفل الصفحة لكل شعبة */
         @media print {
-            @page { size: A4 portrait; margin: 6mm; }
+            @page { size: A4 portrait; margin: 5mm; }
             body { background: white; padding: 0; margin: 0; }
-            header, .section-card:not(#reportOutputCard), .btn-row, .nav-tabs, footer.author-footer, #reportHeaderTitleCard, #admin-nav-container { display: none !important; }
+            header, .section-card:not(#reportOutputCard), .btn-row, .nav-tabs, footer.author-footer, #reportHeaderTitleCard { display: none !important; }
             .report-preview-area { box-shadow: none; padding: 0; margin: 0; border: none; }
             .report-single-page { 
                 margin: 0 !important;
@@ -182,7 +181,7 @@
                 break-inside: avoid;
                 page-break-after: always;
                 break-after: page;
-                height: 98vh;
+                min-height: 96vh;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
@@ -295,6 +294,7 @@
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="name" checked> اسم الطالب</label>
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="cls" checked> الفرقة</label>
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="total" checked> المجموع التراكمي</label>
+                    <label class="checkbox-label"><input type="checkbox" class="col-check" value="play_count" checked> عدد مرات التفعيل (اللعب)</label>
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="weekly_badge" checked> فارس التفعيل الأسبوعي (أوسمة)</label>
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="monthly_badge" checked> فارس التفعيل الشهري (أوسمة)</label>
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="rank_school" checked> تصنيف المدرسة</label>
@@ -599,6 +599,7 @@
                             name, 
                             cls, 
                             total: 0, 
+                            playCount: 0,
                             weeklyBadgesCount: 0, 
                             monthlyBadgesCount: 0, 
                             hasPlayed: false,
@@ -618,6 +619,7 @@
                                 name, 
                                 cls, 
                                 total: 0, 
+                                playCount: 0,
                                 weeklyBadgesCount: 0, 
                                 monthlyBadgesCount: 0, 
                                 hasPlayed: false,
@@ -628,6 +630,7 @@
                         if (pts > 0) {
                             studentsMap[key].hasPlayed = true;
                             studentsMap[key].total += pts;
+                            studentsMap[key].playCount += 1; // حساب عدد مرات اللعب/التفعيل الإجمالي
                             studentsMap[key].records.push({
                                 points: pts,
                                 created_at: item.created_at ? new Date(item.created_at) : null
@@ -714,6 +717,7 @@
                         if (activeCols.includes('name')) htmlContent += `<th>اسم الطالب</th>`;
                         if (activeCols.includes('cls')) htmlContent += `<th>الفرقة</th>`;
                         if (activeCols.includes('total')) htmlContent += `<th>المجموع التراكمي</th>`;
+                        if (activeCols.includes('play_count')) htmlContent += `<th>عدد مرات التفعيل (اللعب)</th>`;
                         if (activeCols.includes('weekly_badge')) htmlContent += `<th>فارس التفعيل الأسبوعي</th>`;
                         if (activeCols.includes('monthly_badge')) htmlContent += `<th>فارس التفعيل الشهري</th>`;
                         if (activeCols.includes('rank_school')) htmlContent += `<th>تصنيف المدرسة</th>`;
@@ -744,6 +748,7 @@
                             if (activeCols.includes('name')) htmlContent += `<td style="text-align:right; font-weight:bold; padding-right:6px; white-space:nowrap;">${st.name}</td>`;
                             if (activeCols.includes('cls')) htmlContent += `<td>${st.cls}</td>`;
                             if (activeCols.includes('total')) htmlContent += `<td style="color:var(--primary); font-weight:900; background:#fdf2f8;">⭐ ${st.total}</td>`;
+                            if (activeCols.includes('play_count')) htmlContent += `<td><b>${st.playCount}</b> 🎮</td>`;
                             if (activeCols.includes('weekly_badge')) htmlContent += `<td><b>${st.weeklyBadgesCount}</b> ⚡</td>`;
                             if (activeCols.includes('monthly_badge')) htmlContent += `<td><b>${st.monthlyBadgesCount}</b> 🌙</td>`;
                             if (activeCols.includes('rank_school')) htmlContent += `<td>${rankSchool}</td>`;
