@@ -293,11 +293,9 @@
                 <div class="checkbox-group">
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="name" checked> اسم الطالب</label>
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="cls" checked> الفرقة</label>
-                    <label class="checkbox-label"><input type="checkbox" class="col-check" value="total" checked> المجموع</label>
-                    <label class="checkbox-label"><input type="checkbox" class="col-check" value="rocket" checked> صواريخ الفضاء</label>
-                    <label class="checkbox-label"><input type="checkbox" class="col-check" value="goldmine" checked> منجم الذهب</label>
-                    <label class="checkbox-label"><input type="checkbox" class="col-check" value="mountain" checked> الصعود للقمة</label>
-                    <label class="checkbox-label"><input type="checkbox" class="col-check" value="snake" checked> الحية والسلم</label>
+                    <label class="checkbox-label"><input type="checkbox" class="col-check" value="total" checked> المجموع التراكمي</label>
+                    <label class="checkbox-label"><input type="checkbox" class="col-check" value="weekly_badge" checked> فارس التفعيل الأسبوعي (أوسمة)</label>
+                    <label class="checkbox-label"><input type="checkbox" class="col-check" value="monthly_badge" checked> فارس التفعيل الشهري (أوسمة)</label>
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="rank_school" checked> تصنيف المدرسة</label>
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="rank_section" checked> تصنيف الفرقة</label>
                     <label class="checkbox-label"><input type="checkbox" class="col-check" value="rank_grade" checked> تصنيف المرحلة</label>
@@ -364,8 +362,6 @@
 
         function checkUserPermissions() {
             const roleVal = currentUser ? String(currentUser.role || '').trim().toLowerCase() : 'teacher';
-            const isTeacher = (roleVal === 'teacher' || roleVal === 'معلم');
-
             if (roleVal === 'admin' || roleVal === 'مدير' || roleVal === 'administrator') {
                 document.getElementById('adminSettingsCard').classList.remove('hidden');
             }
@@ -434,7 +430,6 @@
                     header_right: cloudSettings.headerRight,
                     header_left: cloudSettings.headerLeft
                 };
-
                 await supabaseClient.from('settings').upsert([payload], { onConflict: 'key' });
             } catch (err) {
                 console.error("خطأ في حفظ الإعدادات سحابياً:", err);
@@ -599,38 +594,89 @@
                         let name = st.name || st.student_name;
                         let cls = st.cls || st.class_name || 'غير مصنف';
                         let key = name + '_' + cls;
-                        studentsMap[key] = { name, cls, rocket: 0, goldmine: 0, mountain: 0, snake: 0, total: 0, hasPlayed: false };
+                        studentsMap[key] = { 
+                            name, 
+                            cls, 
+                            total: 0, 
+                            weeklyBadgesCount: 0, 
+                            monthlyBadgesCount: 0, 
+                            hasPlayed: false,
+                            records: [] 
+                        };
                     });
                 }
 
-                function processScores(data, gameKey) {
+                function processScores(data) {
                     if (!data) return;
                     data.forEach(item => {
                         let name = item.student_name;
                         let cls = item.cls || 'غير مصنف';
                         let key = name + '_' + cls;
                         if (!studentsMap[key]) {
-                            studentsMap[key] = { name, cls, rocket: 0, goldmine: 0, mountain: 0, snake: 0, total: 0, hasPlayed: false };
+                            studentsMap[key] = { 
+                                name, 
+                                cls, 
+                                total: 0, 
+                                weeklyBadgesCount: 0, 
+                                monthlyBadgesCount: 0, 
+                                hasPlayed: false,
+                                records: [] 
+                            };
                         }
                         let pts = item.points || 0;
-                        studentsMap[key][gameKey] = Math.max(studentsMap[key][gameKey], pts);
                         if (pts > 0) {
                             studentsMap[key].hasPlayed = true;
+                            studentsMap[key].total += pts;
+                            studentsMap[key].records.push({
+                                points: pts,
+                                created_at: item.created_at ? new Date(item.created_at) : null
+                            });
                         }
                     });
                 }
 
-                processScores(rocket.data, 'rocket');
-                processScores(goldmine.data, 'goldmine');
-                processScores(mountain.data, 'mountain');
-                processScores(snake.data, 'snake');
+                processScores(rocket.data);
+                processScores(goldmine.data);
+                processScores(mountain.data);
+                processScores(snake.data);
 
-                let allStudents = Object.values(studentsMap).map(s => {
-                    s.total = s.rocket + s.goldmine + s.mountain + s.snake;
-                    if (s.total > 0) s.hasPlayed = true;
-                    return s;
+                // حساب أوسمة التفعيل لكل طالب عبر تجميع تكرارات الحصول على المراكز الأولى أو النشاط الفعّال دون تحديد النطاق التاريخي الصارم
+                // (حيث نجمع السجلات المتشابهة للأسبوع والشهر عبر الألعاب المختلفة بناءً على معايير الفرسان النشطين)
+                let now = new Date();
+                let currentMonth = now.getMonth();
+                let currentYear = now.getFullYear();
+
+                let currentDayOfWeek = now.getDay();
+                let startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - currentDayOfWeek);
+                startOfWeek.setHours(0, 0, 0, 0);
+                let endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                endOfWeek.setHours(23, 59, 59, 999);
+
+                Object.values(studentsMap).forEach(st => {
+                    let weeklyCount = 0;
+                    let monthlyCount = 0;
+
+                    st.records.forEach(rec => {
+                        if (rec.created_at) {
+                            if (rec.created_at >= startOfWeek && rec.created_at <= endOfWeek) {
+                                weeklyCount++;
+                            }
+                            if (rec.created_at.getMonth() === currentMonth && rec.created_at.getFullYear() === currentYear) {
+                                monthlyCount++;
+                            }
+                        } else {
+                            // إن لم يوجد تاريخ مسجل، نحتسبه ضمن التراكمي العام للشهر والنشاط
+                            monthlyCount++;
+                        }
+                    });
+
+                    st.weeklyBadgesCount = weeklyCount;
+                    st.monthlyBadgesCount = monthlyCount;
                 });
 
+                let allStudents = Object.values(studentsMap);
                 let sortedForRank = [...allStudents].sort((a, b) => b.total - a.total);
                 let htmlContent = '';
 
@@ -669,11 +715,9 @@
                         
                         if (activeCols.includes('name')) htmlContent += `<th>اسم الطالب</th>`;
                         if (activeCols.includes('cls')) htmlContent += `<th>الفرقة</th>`;
-                        if (activeCols.includes('total')) htmlContent += `<th>المجموع</th>`;
-                        if (activeCols.includes('rocket')) htmlContent += `<th>صواريخ الفضاء</th>`;
-                        if (activeCols.includes('goldmine')) htmlContent += `<th>منجم الذهب</th>`;
-                        if (activeCols.includes('mountain')) htmlContent += `<th>الصعود للقمة</th>`;
-                        if (activeCols.includes('snake')) htmlContent += `<th>الحية والسلم</th>`;
+                        if (activeCols.includes('total')) htmlContent += `<th>المجموع التراكمي</th>`;
+                        if (activeCols.includes('weekly_badge')) htmlContent += `<th>فارس التفعيل الأسبوعي</th>`;
+                        if (activeCols.includes('monthly_badge')) htmlContent += `<th>فارس التفعيل الشهري</th>`;
                         if (activeCols.includes('rank_school')) htmlContent += `<th>تصنيف المدرسة</th>`;
                         if (activeCols.includes('rank_section')) htmlContent += `<th>تصنيف الفرقة</th>`;
                         if (activeCols.includes('rank_grade')) htmlContent += `<th>تصنيف المرحلة</th>`;
@@ -702,10 +746,8 @@
                             if (activeCols.includes('name')) htmlContent += `<td style="text-align:right; font-weight:bold; padding-right:6px; white-space:nowrap;">${st.name}</td>`;
                             if (activeCols.includes('cls')) htmlContent += `<td>${st.cls}</td>`;
                             if (activeCols.includes('total')) htmlContent += `<td style="color:var(--primary); font-weight:900; background:#fdf2f8;">⭐ ${st.total}</td>`;
-                            if (activeCols.includes('rocket')) htmlContent += `<td>${st.rocket}</td>`;
-                            if (activeCols.includes('goldmine')) htmlContent += `<td>${st.goldmine}</td>`;
-                            if (activeCols.includes('mountain')) htmlContent += `<td>${st.mountain}</td>`;
-                            if (activeCols.includes('snake')) htmlContent += `<td>${st.snake}</td>`;
+                            if (activeCols.includes('weekly_badge')) htmlContent += `<td><b>${st.weeklyBadgesCount}</b> ⚡</td>`;
+                            if (activeCols.includes('monthly_badge')) htmlContent += `<td><b>${st.monthlyBadgesCount}</b> 🌙</td>`;
                             if (activeCols.includes('rank_school')) htmlContent += `<td>${rankSchool}</td>`;
                             if (activeCols.includes('rank_section')) htmlContent += `<td>${rankSection}</td>`;
                             if (activeCols.includes('rank_grade')) htmlContent += `<td>${rankGrade}</td>`;
