@@ -275,7 +275,7 @@
             checkAndDisplayStudentBadges(studentData.name, studentData.cls);
         }
 
-        // دالة فحص وعرض الأوسمة والملصقات التكريمية (مفصولة تماماً ومستقلة)
+        // دالة فحص وعرض الأوسمة والملصقات التكريمية (مع عداد تكرار مستقل لكل نطاق وفصل تام)
         async function checkAndDisplayStudentBadges(currentStudentName, currentStudentClass) {
             const container = document.getElementById('studentBadgesContainer');
             try {
@@ -301,110 +301,114 @@
                     }
                 });
 
-                let earnedBadgesList = [];
+                let earnedBadgesMap = {};
 
                 // 1. أوسمة المعلم الممنوحة يدوياً
                 if (cloudBadges.data && cloudBadges.data.length > 0) {
                     cloudBadges.data.forEach(cb => {
-                        earnedBadgesList.push({
-                            name: cb.badge_name,
-                            icon: "🎖️",
-                            count: 1,
-                            scope: "وسام تكريمي خاص",
-                            desc: "وسام مخصص من المعلم"
-                        });
+                        let key = "cloud_" + cb.badge_name;
+                        if (!earnedBadgesMap[key]) {
+                            earnedBadgesMap[key] = {
+                                name: cb.badge_name,
+                                icon: "🎖️",
+                                count: 0,
+                                scope: "وسام تكريمي خاص",
+                                desc: "وسام مخصص من المعلم"
+                            };
+                        }
+                        earnedBadgesMap[key].count += 1;
                     });
                 }
 
                 // 2. أوسمة النقاط التراكمية
                 if (studentTotalPoints >= 1000) {
-                    earnedBadgesList.push({ name: "وسام 1,000 نقطة", icon: "🥉", count: 1, scope: "تجاوز 1000 نقطة", desc: "تجاوز 1000 نقطة" });
+                    earnedBadgesMap["pts_1000"] = { name: "وسام 1,000 نقطة", icon: "🥉", count: 1, scope: "تجاوز 1000 نقطة", desc: "تجاوز 1000 نقطة" };
                 }
                 if (studentTotalPoints >= 3000) {
-                    earnedBadgesList.push({ name: "وسام 3,000 نقطة", icon: "🥈", count: 1, scope: "تجاوز 3000 نقطة", desc: "تجاوز 3000 نقطة" });
+                    earnedBadgesMap["pts_3000"] = { name: "وسام 3,000 نقطة", icon: "🥈", count: 1, scope: "تجاوز 3000 نقطة", desc: "تجاوز 3000 نقطة" };
                 }
                 if (studentTotalPoints >= 5000) {
-                    earnedBadgesList.push({ name: "وسام 5,000 نقطة", icon: "🥇", count: 1, scope: "تجاوز 5000 نقطة", desc: "تجاوز 5000 نقطة" });
+                    earnedBadgesMap["pts_5000"] = { name: "وسام 5,000 نقطة", icon: "🥇", count: 1, scope: "تجاوز 5000 نقطة", desc: "تجاوز 5000 نقطة" };
                 }
                 if (studentTotalPoints >= 10000) {
-                    earnedBadgesList.push({ name: "وسام 10,000 نقطة", icon: "💎", count: 1, scope: "بطل الأساطير", desc: "بطل الأساطير" });
+                    earnedBadgesMap["pts_10000"] = { name: "وسام 10,000 نقطة", icon: "💎", count: 1, scope: "بطل الأساطير", desc: "بطل الأساطير" };
                 }
 
-                // 3. حساب التفعيل الأسبوعي والشهري وفصل الشعبة عن المرحلة والمدرسة كلياً
-                let weeklyWins = calculatePeriodicWins(allRecords, currentStudentName, currentStudentClass, 'week');
-                let monthlyWins = calculatePeriodicWins(allRecords, currentStudentName, currentStudentClass, 'month');
+                // 3. حساب مرات الفوز الفعلية في كل نطاق بشكل مستقل تماماً
+                let weeklyWinsObj = calculatePeriodicWinsDetailed(allRecords, currentStudentName, currentStudentClass, 'week');
+                let monthlyWinsObj = calculatePeriodicWinsDetailed(allRecords, currentStudentName, currentStudentClass, 'month');
 
                 let gradeNum = currentStudentClass.charAt(0);
                 let gradeNameMap = { '3': 'الثالث', '4': 'الرابع', '5': 'الخامس', '6': 'السادس' };
                 let gradeNameStr = gradeNameMap[gradeNum] || gradeNum;
 
-                // أوسمة الأسبوع المفصولة تماماً
-                if (weeklyWins.sectionCount > 0) {
-                    earnedBadgesList.push({
+                if (weeklyWinsObj.sectionCount > 0) {
+                    earnedBadgesMap["weekly_sec"] = {
                         name: "فارس التفعيل الأسبوعي",
                         icon: "🌟",
-                        count: weeklyWins.sectionCount,
+                        count: weeklyWinsObj.sectionCount,
                         scope: "(على مستوى الشعبة)",
                         desc: `الاكثر تفعيلا في صف ${currentStudentClass} هذا الاسبوع`
-                    });
+                    };
                 }
-                if (weeklyWins.gradeCount > 0) {
-                    earnedBadgesList.push({
+                if (weeklyWinsObj.gradeCount > 0) {
+                    earnedBadgesMap["weekly_grade"] = {
                         name: "فارس التفعيل الأسبوعي",
                         icon: "🔥",
-                        count: weeklyWins.gradeCount,
+                        count: weeklyWinsObj.gradeCount,
                         scope: "(على مستوى المرحلة)",
                         desc: `الاكثر تفعيلا في صف ${gradeNameStr} هذا الاسبوع`
-                    });
+                    };
                 }
-                if (weeklyWins.schoolCount > 0) {
-                    earnedBadgesList.push({
+                if (weeklyWinsObj.schoolCount > 0) {
+                    earnedBadgesMap["weekly_school"] = {
                         name: "فارس التفعيل الأسبوعي",
                         icon: "👑",
-                        count: weeklyWins.schoolCount,
+                        count: weeklyWinsObj.schoolCount,
                         scope: "(على مستوى المدرسة)",
                         desc: `الاكثر تفعيلًا في المدرسة هذا الاسبوع`
-                    });
+                    };
                 }
 
-                // أوسمة الشهر المفصولة تماماً
-                if (monthlyWins.sectionCount > 0) {
-                    earnedBadgesList.push({
+                if (monthlyWinsObj.sectionCount > 0) {
+                    earnedBadgesMap["monthly_sec"] = {
                         name: "فارس التفعيل الشهري",
                         icon: "🏆",
-                        count: monthlyWins.sectionCount,
+                        count: monthlyWinsObj.sectionCount,
                         scope: "(على مستوى الشعبة)",
                         desc: `الاكثر تفعيلا في صف ${currentStudentClass} لشهر نوفمبر`
-                    });
+                    };
                 }
-                if (monthlyWins.gradeCount > 0) {
-                    earnedBadgesList.push({
+                if (monthlyWinsObj.gradeCount > 0) {
+                    earnedBadgesMap["monthly_grade"] = {
                         name: "فارس التفعيل الشهري",
                         icon: "🚀",
-                        count: monthlyWins.gradeCount,
+                        count: monthlyWinsObj.gradeCount,
                         scope: "(على مستوى المرحلة)",
                         desc: `الاكثر تفعيلا في صف ${gradeNameStr} لشهر نوفمبر`
-                    });
+                    };
                 }
-                if (monthlyWins.schoolCount > 0) {
-                    earnedBadgesList.push({
+                if (monthlyWinsObj.schoolCount > 0) {
+                    earnedBadgesMap["monthly_school"] = {
                         name: "فارس التفعيل الشهري",
                         icon: "👑🥇",
-                        count: monthlyWins.schoolCount,
+                        count: monthlyWinsObj.schoolCount,
                         scope: "(على مستوى المدرسة)",
                         desc: `الاكثر تفعيلًا في المدرسة لشهر نوفمبر`
-                    });
+                    };
                 }
 
+                let badgeKeys = Object.keys(earnedBadgesMap);
                 let totalCountSum = 0;
-                earnedBadgesList.forEach(b => { totalCountSum += b.count; });
+                badgeKeys.forEach(k => { totalCountSum += earnedBadgesMap[k].count; });
 
                 let headerTitleHTML = `<h2>🎖️ أوسمتي وملصقات الإنجاز التكريمية: <span style="background: #fce4ec; color: var(--primary); padding: 2px 12px; border-radius: 8px; border: 1px solid #f8bbd0; font-size: 16px;">عدد الأوسمة (${toArabicNum(totalCountSum)})</span></h2>`;
                 
                 let gridHTML = `<div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: start; width: 100%; margin-bottom: 25px;">`;
 
-                if (earnedBadgesList.length > 0) {
-                    earnedBadgesList.forEach(b => {
+                if (badgeKeys.length > 0) {
+                    badgeKeys.forEach(k => {
+                        let b = earnedBadgesMap[k];
                         let countBadgeHTML = b.count > 1 ? `<div style="position: absolute; top: -8px; left: -8px; background: #d81b60; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">×${toArabicNum(b.count)}</div>` : '';
 
                         gridHTML += `
@@ -430,7 +434,7 @@
             }
         }
 
-        function calculatePeriodicWins(records, studentName, studentClass, periodType) {
+        function calculatePeriodicWinsDetailed(records, studentName, studentClass, periodType) {
             let periodsMap = {};
 
             records.forEach(item => {
