@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة فرسان جدول الضرب - الرئيسية</title>
+    <title>منصة فرسان جدول الضرب - لوحة الفرسان</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -24,108 +24,115 @@
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            justify-content: space-between; 
-            padding: 130px 20px 80px 20px; 
+            padding: 90px 15px 75px 15px; 
         }
-        
-        .container { max-width: 950px; width: 100%; text-align: center; margin: auto; }
         
         header { 
             position: fixed; 
             top: 0; 
             left: 0; 
             width: 100%; 
-            background: #ffffff; 
+            background: white; 
             padding: 15px 20px; 
+            text-align: center; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.08); 
             border-bottom: 5px solid var(--primary); 
             z-index: 1000; 
-            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
         }
-        header h1 { color: var(--primary); font-size: 22px; font-weight: 900; margin-bottom: 2px; }
-        header p { color: #64748b; font-size: 12px; margin: 0; }
+        header:hover { background: #fff0f5; }
+        header h1 { color: var(--primary); font-size: 22px; font-weight: 900; }
 
-        .student-greeting { 
-            background: #fce4ec; 
-            color: var(--primary); 
-            padding: 12px 20px; 
-            border-radius: 14px; 
-            display: inline-flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 15px; 
-            font-weight: bold; 
-            margin-bottom: 25px; 
-            font-size: 16px; 
-            border: 1px solid #f8bbd0; 
-            box-shadow: 0 2px 8px rgba(216,27,96,0.06);
-            width: 100%;
-            max-width: 650px;
-        }
-
-        .portal-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
-        .portal-card { 
-            background: var(--card-bg); 
-            border-radius: 15px; 
-            padding: 25px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-            border: 2px solid #e2e8f0; 
-            transition: 0.3s; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-between; 
-            cursor: pointer; 
-            user-select: none;
-        }
-        .portal-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.08); border-color: var(--primary); }
-        .portal-icon { font-size: 45px; margin-bottom: 12px; }
-        .portal-card h3 { color: var(--text); font-size: 19px; margin-bottom: 8px; font-weight: 700; }
-        .portal-card p { color: #64748b; font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
-
-        .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 10px; cursor: pointer; transition: 0.3s; text-decoration: none; display: inline-block; font-family: 'Cairo'; width: 100%; pointer-events: none; }
-        .portal-card:hover .btn, .game-card:hover .btn { transform: translateY(-2px); filter: brightness(0.95); }
+        .container { max-width: 1200px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
-        .btn-green { background: #2e7d32; }
-        .btn-dark { background: #334155; }
-
-        .student-dashboard-section { background: #ffffff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: 10px; border: 1px solid #e2e8f0; text-align: right; }
-        .student-dashboard-section h2 { color: var(--primary); font-size: 20px; margin-bottom: 15px; font-weight: 800; }
-
-        /* بطاقة عرض التصنيفات الثلاثة */
-        .ranks-summary-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; text-align: center; }
-        .rank-badge-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; font-weight: bold; color: #334155; }
-        .rank-badge-item span { color: var(--primary); font-size: 15px; display: block; margin-top: 3px; }
-
-        /* قسم الأوسمة والملصقات بجانب بعضها البعض */
-        .badge-sticker { background: linear-gradient(135deg, #fff 0%, #fdf2f8 100%); border: 2px solid var(--primary); border-radius: 14px; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(216,27,96,0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 180px; flex: 1; max-width: 220px; }
-        .badge-sticker-icon { font-size: 38px; margin-bottom: 5px; }
-        .badge-sticker-name { font-weight: 900; color: var(--primary); font-size: 13px; margin-bottom: 3px; line-height: 1.4; }
-        .badge-sticker-desc { font-size: 11px; color: #64748b; font-weight: 600; line-height: 1.4; }
-
-        .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
-        @media (max-width: 600px) { .games-grid { grid-template-columns: 1fr; } }
-
-        .game-card { 
-            background: #f8fafc; 
-            border-radius: 15px; 
-            padding: 18px; 
+        .board-card { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 20px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
             border: 2px solid #e2e8f0; 
-            transition: 0.3s; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: space-between; 
-            cursor: pointer; 
-            user-select: none;
-            text-align: center;
         }
-        .game-card:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 8px 20px rgba(216,27,96,0.12); }
-        .game-card h3 { color: var(--text); font-size: 16px; margin: 8px 0; }
-        .game-card p { color: #64748b; font-size: 12px; margin-bottom: 12px; line-height: 1.4; }
+        
+        .board-title { color: var(--primary); margin-bottom: 15px; text-align: center; font-size: 19px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        
+        .rank-list { display: flex; flex-direction: column; gap: 5px; }
+        .rank-item { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 7px 10px; 
+            background: #f8fafc; 
+            border-radius: 8px; 
+            border: 1px solid #e2e8f0; 
+            font-size: 12px; 
+            transition: 0.2s; 
+        }
+        .rank-item:hover { background: #fdf2f8; border-color: #fbcfe8; }
+        .rank-item.top-1 { background: #fef3c7; border-color: #fde68a; font-weight: bold; }
+        .rank-item.top-2 { background: #f1f5f9; border-color: #cbd5e1; font-weight: bold; }
+        .rank-item.top-3 { background: #ffedd5; border-color: #fed7aa; font-weight: bold; }
 
-        .student-nav-actions { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 20px; border-top: 1px dashed #cbd5e1; padding-top: 20px; }
-        .student-nav-actions .btn { pointer-events: auto; }
+        .more-btn { 
+            background: transparent; 
+            border: 2px dashed var(--primary); 
+            color: var(--primary); 
+            width: 100%; 
+            padding: 6px; 
+            border-radius: 8px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            margin-top: 8px; 
+            font-family: 'Cairo'; 
+            font-size: 12px;
+            transition: 0.2s; 
+        }
+        .more-btn:hover { background: var(--primary); color: white; border-style: solid; }
+
+        /* شبكة أفقية مصغرة لعرض الصفوف بجانب بعضها البعض بحجم أصغر */
+        .active-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
+            gap: 12px; 
+        }
+
+        /* شبكة أفقية مصغرة لعرض لوحات الألعاب بجانب بعضها في صف واحد */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+        }
+
+        .mini-board { 
+            background: #ffffff; 
+            border: 2px solid #cbd5e1; 
+            border-radius: 12px; 
+            padding: 12px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
+        }
+        .mini-board h3 { color: #1565c0; font-size: 14px; margin-bottom: 8px; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+
+        /* بطاقات الأبطال على مستوى المدرسة */
+        .school-champions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 5px;
+        }
+        .champion-card {
+            background: linear-gradient(135deg, #fff9fb 0%, #fdf2f8 100%);
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(216,27,96,0.08);
+        }
+        .champion-title { font-weight: 900; color: var(--primary); font-size: 15px; margin-bottom: 8px; }
+        .champion-name { font-size: 16px; font-weight: bold; color: #1e293b; }
+
+        .back-container { text-align: center; margin-top: 10px; }
+        .back-link { display: inline-block; color: var(--primary); text-decoration: none; font-weight: bold; font-size: 15px; }
+        .back-link:hover { text-decoration: underline; }
 
         footer.author-footer {
             position: fixed;
@@ -148,110 +155,98 @@
 </head>
 <body>
 
-    <header>
-        <h1>⚔️ منصة فرسان جدول الضرب</h1>
-        <p id="headerSubtext">مرحباً بك! اختر وجهتك أو نوع الدخول للمتابعة:</p>
+    <header onclick="window.location.href='index.html'" title="العودة للرئيسية">
+        <h1>🏆 منصة فرسان جدول الضرب - لوحة الفرسان 🏠</h1>
     </header>
 
     <div class="container">
-        <!-- شريط الترحيب بالطالب -->
-        <div id="greetingBox" class="student-greeting hidden">
-            <div>أهلاً بالبطل: <span id="displayName" style="color:#ad1457; font-weight:900;">بطل</span> (<span id="displayClass">الصف</span>) 🌟</div>
-            <button onclick="changeStudent()" style="background:#fff; border:1px solid #d32f2f; color:#d32f2f; font-weight:bold; cursor:pointer; padding:4px 10px; border-radius:6px; font-family:'Cairo'; font-size:12px;">تغيير الطالب 🔄</button>
-        </div>
-
-        <!-- واجهة اختيار نوع الدخول العامة -->
-        <div id="publicPortalGrid" class="portal-grid">
-            <div class="portal-card" onclick="window.location.href='student.html'">
-                <div>
-                    <div class="portal-icon">🌟</div>
-                    <h3>دخول الطالب</h3>
-                    <p>اختر صفك واسمك لبدء التحديات وخوض سباق الألعاب!</p>
+        
+        <!-- قسم الأبطال على مستوى المدرسة (الأسبوعي والشهري) -->
+        <div class="board-card">
+            <div class="board-title">🌟 أبطال التفعيل على مستوى المدرسة</div>
+            <div class="school-champions-grid">
+                <div class="champion-card">
+                    <div class="champion-title">الأكثر تفعيل في المدرسة لهذا الأسبوع 🏅</div>
+                    <div class="champion-name" id="schoolWeeklyChamp">جاري التحميل...</div>
                 </div>
-                <span class="btn">دخول الطالب 🚀</span>
-            </div>
-
-            <div class="portal-card" onclick="window.location.href='leaderboard.html'">
-                <div>
-                    <div class="portal-icon">🏆</div>
-                    <h3>لوحة الملوك</h3>
-                    <p>استعرض قائمة الملوك والأبطال المتصدرين في ألعاب جدول الضرب.</p>
+                <div class="champion-card">
+                    <div class="champion-title">الأكثر تفعيل في المدرسة لهذا الشهر 🏆</div>
+                    <div class="champion-name" id="schoolMonthlyChamp">جاري التحميل...</div>
                 </div>
-                <span class="btn btn-green">عرض النتائج 📊</span>
-            </div>
-
-            <div class="portal-card" onclick="window.location.href='staff.html'">
-                <div>
-                    <div class="portal-icon">👨‍🏫</div>
-                    <h3>المعلمين</h3>
-                    <p>لوحة التحكم الشاملة لإدارة بيانات الطلاب، الألعاب، والدرجات.</p>
-                </div>
-                <span class="btn btn-dark">بوابة المعلمين 🔑</span>
             </div>
         </div>
 
-        <!-- لوحة الطالب المخصصة -->
-        <div id="studentDashboard" class="student-dashboard-section hidden">
-            <h2>📊 تصنيفاتك ومستواك القيادي:</h2>
-            <div class="ranks-summary-box" id="studentRanksBox">
-                <div class="rank-badge-item">على مستوى الفرقة (الشعبة): <span id="sectionRankText">جاري الحساب...</span></div>
-                <div class="rank-badge-item">على مستوى المرحلة (الصف): <span id="classRankText">جاري الحساب...</span></div>
-                <div class="rank-badge-item">على مستوى المدرسة: <span id="schoolRankText">جاري الحساب...</span></div>
+        <!-- فرسان التفعيل الأسبوعي (الرابع، الخامس، السادس) -->
+        <div class="board-card">
+            <div class="board-title">⚡ فرسان التفعيل الأسبوعي (حسب الصفوف)</div>
+            <div class="active-grid" id="weeklyActiveGridsContainer">
+                <p style="text-align: center; color: #666; grid-column: 1/-1;">جاري حساب النشاط الأسبوعي...</p>
             </div>
+        </div>
 
-            <!-- حاوية الأوسمة التكريمية والعدّاد -->
-            <div id="studentBadgesContainer">
-                <div style="width: 100%; text-align: center; color: #64748b; font-size: 13px; padding: 15px;">جاري فحص وتحميل أوسمتك وملصقات الإنجاز... 🏅</div>
+        <!-- فرسان التفعيل الشهري (الرابع، الخامس، السادس) -->
+        <div class="board-card">
+            <div class="board-title">🌙 فرسان التفعيل الشهري (حسب الصفوف)</div>
+            <div class="active-grid" id="monthlyActiveGridsContainer">
+                <p style="text-align: center; color: #666; grid-column: 1/-1;">جاري حساب النشاط الشهري...</p>
             </div>
+        </div>
 
-            <h2>🎮 اختر اللعبة وابدأ التحدي الآن:</h2>
-            
+        <!-- الصدارة العامة -->
+        <div class="board-card">
+            <div class="board-title">⚔️ أبطال الصدارة العامة (جميع الألعاب مدمجة)</div>
+            <div class="rank-list" id="combinedList">
+                <div style="text-align:center; color:#666;">جاري تحميل أبطال الصدارة العامة...</div>
+            </div>
+            <button class="more-btn hidden" id="moreCombined" onclick="toggleMore('combined')">عرض المزيد 👇</button>
+        </div>
+
+        <!-- لوحات صدارة الألعاب (مرتبة في صف واحد كبطاقات مصغرة بحجم أصغر) -->
+        <div class="board-card">
+            <div class="board-title">🎮 صدارة الألعاب التنافسية</div>
             <div class="games-grid">
+                
                 <!-- صواريخ الفضاء -->
-                <div class="game-card" onclick="window.location.href='rocket.html'">
-                    <div>
-                        <div style="font-size: 32px;">🚀</div>
-                        <h3>سباق صواريخ الفضاء</h3>
-                        <p>أجب بسرعة وأطلق صاروخك نحو الفضاء واكسب النقاط!</p>
+                <div class="mini-board">
+                    <h3>🚀 صواريخ الفضاء</h3>
+                    <div class="rank-list" id="rocketList">
+                        <div style="text-align:center; color:#666; font-size:12px;">جاري التحميل...</div>
                     </div>
-                    <span class="btn">العب الان 🚀</span>
+                    <button class="more-btn hidden" id="moreRocket" onclick="toggleMore('rocket')">عرض المزيد 👇</button>
                 </div>
 
                 <!-- منجم الذهب -->
-                <div class="game-card" onclick="window.location.href='goldmine.html'">
-                    <div>
-                        <div style="font-size: 32px;">⛏️</div>
-                        <h3>لغز منجم الذهب</h3>
-                        <p>اكسر الصخور، حل لغز الضرب، وافتح صندوق الذهب!</p>
+                <div class="mini-board">
+                    <h3>⛏️ منجم الذهب</h3>
+                    <div class="rank-list" id="mineList">
+                        <div style="text-align:center; color:#666; font-size:12px;">جاري التحميل...</div>
                     </div>
-                    <span class="btn" style="background: #d97706;">التنقيب 🪙</span>
+                    <button class="more-btn hidden" id="moreMine" onclick="toggleMore('mine')">عرض المزيد 👇</button>
                 </div>
 
                 <!-- الصعود نحو القمة -->
-                <div class="game-card" onclick="window.location.href='mountain.html'">
-                    <div>
-                        <div style="font-size: 32px;">🧗‍♂️</div>
-                        <h3>الصعود نحو القمة</h3>
-                        <p>أجب عن المسائل وتسلق الجبل نحو قمة المجد!</p>
+                <div class="mini-board">
+                    <h3>🧗‍♂️ الصعود نحو القمة</h3>
+                    <div class="rank-list" id="mountainList">
+                        <div style="text-align:center; color:#666; font-size:12px;">جاري التحميل...</div>
                     </div>
-                    <span class="btn" style="background: #0284c7;">تسلق الجبل 🧗‍♂️</span>
+                    <button class="more-btn hidden" id="moreMountain" onclick="toggleMore('mountain')">عرض المزيد 👇</button>
                 </div>
 
-                <!-- لعبة الحية والسلم -->
-                <div class="game-card" onclick="window.location.href='snake.html'">
-                    <div>
-                        <div style="font-size: 32px;">🐍</div>
-                        <h3>الحية والسلم</h3>
-                        <p>ارمِ النرد، اصعد السلالم بالذكاء وتجنب الثعابين!</p>
+                <!-- الحية والدرج -->
+                <div class="mini-board">
+                    <h3>🐍 الحية والدرج</h3>
+                    <div class="rank-list" id="snakeList">
+                        <div style="text-align:center; color:#666; font-size:12px;">جاري التحميل...</div>
                     </div>
-                    <span class="btn" style="background: #16a34a;">ابدأ اللعبة 🎲</span>
+                    <button class="more-btn hidden" id="moreSnake" onclick="toggleMore('snake')">عرض المزيد 👇</button>
                 </div>
-            </div>
 
-            <div class="student-nav-actions">
-                <a href="leaderboard.html" class="btn btn-green" style="max-width: 220px;">🏆 عرض لوحة النتائج</a>
-                <button onclick="logoutStudentAndReturn()" class="btn btn-dark" style="max-width: 220px;">🏠 العودة للرئيسية وتسجيل الخروج</button>
             </div>
+        </div>
+
+        <div class="back-container">
+            <a href="index.html" class="back-link">← العودة للرئيسية</a>
         </div>
     </div>
 
@@ -260,293 +255,178 @@
     </footer>
 
     <script>
-        let studentData = null;
-        try { studentData = JSON.parse(localStorage.getItem('current_student')); } catch (e) { studentData = null; }
+        const rankNames = ["المركز الأول", "المركز الثاني", "المركز الثالث", "المركز الرابع", "المركز الخامس", "المركز السادس", "المركز السابع", "المركز الثامن", "المركز التاسع", "المركز العاشر"];
 
-        if (studentData && studentData.name) {
-            document.getElementById('displayName').textContent = studentData.name;
-            document.getElementById('displayClass').textContent = studentData.cls || 'غير مصنف';
-            document.getElementById('greetingBox').classList.remove('hidden');
-            document.getElementById('studentDashboard').classList.remove('hidden');
-            document.getElementById('publicPortalGrid').classList.add('hidden');
-            document.getElementById('headerSubtext').textContent = 'جاهز للتحدي والمنافسة؟ استعرض أوسمتك وملصقات إنجازاتك واختار لعبتك المفضلة!';
+        let rawDataStore = { combined: [], rocket: [], mine: [], mountain: [], snake: [] };
+        let showAllState = { combined: false, rocket: false, mine: false, mountain: false, snake: false };
 
-            calculateStudentRanks(studentData.name, studentData.cls);
-            checkAndDisplayStudentBadges(studentData.name, studentData.cls);
-        }
+        document.addEventListener('DOMContentLoaded', () => { fetchAllLeaderboards(); });
 
-        // دالة فحص وعرض الأوسمة والملصقات التكريمية (مع عداد تكرار مستقل لكل نطاق وفصل تام)
-        async function checkAndDisplayStudentBadges(currentStudentName, currentStudentClass) {
-            const container = document.getElementById('studentBadgesContainer');
+        async function fetchAllLeaderboards() {
             try {
-                const [rocket, mine, mountain, snake, cloudBadges] = await Promise.all([
+                const [rocketData, mineData, mountainData, snakeData] = await Promise.all([
                     supabaseClient.from('rocket_scores').select('*'),
                     supabaseClient.from('goldmine_scores').select('*'),
                     supabaseClient.from('mountain_scores').select('*'),
-                    supabaseClient.from('snake_scores').select('*'),
-                    supabaseClient.from('student_badges').select('*').eq('student_name', currentStudentName)
+                    supabaseClient.from('snake_scores').select('*')
                 ]);
 
-                let allRecords = [
-                    ...(rocket.data || []),
-                    ...(mine.data || []),
-                    ...(mountain.data || []),
-                    ...(snake.data || [])
-                ];
+                let rocketList = rocketData.data ? rocketData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
+                let mineList = mineData.data ? mineData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
+                let mountainList = mountainData.data ? mountainData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
+                let snakeList = snakeData.data ? snakeData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
 
-                let studentTotalPoints = 0;
-                allRecords.forEach(item => {
-                    if (item.student_name === currentStudentName && (item.cls || 'غير مصنف') === currentStudentClass) {
-                        studentTotalPoints = Math.max(studentTotalPoints, item.points || 0);
-                    }
+                renderGameList('rocket', rocketList);
+                renderGameList('mine', mineList);
+                renderGameList('mountain', mountainList);
+                renderGameList('snake', snakeList);
+
+                let allCombined = [...rocketList, ...mineList, ...mountainList, ...snakeList];
+                let combinedBest = {};
+                allCombined.forEach(item => {
+                    let key = item.student_name + '_' + item.cls;
+                    if (!combinedBest[key] || item.points > combinedBest[key].points) combinedBest[key] = item;
                 });
-
-                let earnedBadgesMap = {};
-
-                // 1. أوسمة المعلم الممنوحة يدوياً
-                if (cloudBadges.data && cloudBadges.data.length > 0) {
-                    cloudBadges.data.forEach(cb => {
-                        let key = "cloud_" + cb.badge_name;
-                        if (!earnedBadgesMap[key]) {
-                            earnedBadgesMap[key] = {
-                                name: cb.badge_name,
-                                icon: "🎖️",
-                                count: 0,
-                                scope: "وسام تكريمي خاص",
-                                desc: "وسام مخصص من المعلم"
-                            };
-                        }
-                        earnedBadgesMap[key].count += 1;
-                    });
-                }
-
-                // 2. أوسمة النقاط التراكمية
-                if (studentTotalPoints >= 1000) {
-                    earnedBadgesMap["pts_1000"] = { name: "وسام 1,000 نقطة", icon: "🥉", count: 1, scope: "تجاوز 1000 نقطة", desc: "تجاوز 1000 نقطة" };
-                }
-                if (studentTotalPoints >= 3000) {
-                    earnedBadgesMap["pts_3000"] = { name: "وسام 3,000 نقطة", icon: "🥈", count: 1, scope: "تجاوز 3000 نقطة", desc: "تجاوز 3000 نقطة" };
-                }
-                if (studentTotalPoints >= 5000) {
-                    earnedBadgesMap["pts_5000"] = { name: "وسام 5,000 نقطة", icon: "🥇", count: 1, scope: "تجاوز 5000 نقطة", desc: "تجاوز 5000 نقطة" };
-                }
-                if (studentTotalPoints >= 10000) {
-                    earnedBadgesMap["pts_10000"] = { name: "وسام 10,000 نقطة", icon: "💎", count: 1, scope: "بطل الأساطير", desc: "بطل الأساطير" };
-                }
-
-                // 3. حساب مرات الفوز الفعلية في كل نطاق بشكل مستقل تماماً
-                let weeklyWinsObj = calculatePeriodicWinsDetailed(allRecords, currentStudentName, currentStudentClass, 'week');
-                let monthlyWinsObj = calculatePeriodicWinsDetailed(allRecords, currentStudentName, currentStudentClass, 'month');
-
-                let gradeNum = currentStudentClass.charAt(0);
-                let gradeNameMap = { '3': 'الثالث', '4': 'الرابع', '5': 'الخامس', '6': 'السادس' };
-                let gradeNameStr = gradeNameMap[gradeNum] || gradeNum;
-
-                if (weeklyWinsObj.sectionCount > 0) {
-                    earnedBadgesMap["weekly_sec"] = {
-                        name: "فارس التفعيل الأسبوعي",
-                        icon: "🌟",
-                        count: weeklyWinsObj.sectionCount,
-                        scope: "(على مستوى الشعبة)",
-                        desc: `الاكثر تفعيلا في صف ${currentStudentClass} هذا الاسبوع`
-                    };
-                }
-                if (weeklyWinsObj.gradeCount > 0) {
-                    earnedBadgesMap["weekly_grade"] = {
-                        name: "فارس التفعيل الأسبوعي",
-                        icon: "🔥",
-                        count: weeklyWinsObj.gradeCount,
-                        scope: "(على مستوى المرحلة)",
-                        desc: `الاكثر تفعيلا في صف ${gradeNameStr} هذا الاسبوع`
-                    };
-                }
-                if (weeklyWinsObj.schoolCount > 0) {
-                    earnedBadgesMap["weekly_school"] = {
-                        name: "فارس التفعيل الأسبوعي",
-                        icon: "👑",
-                        count: weeklyWinsObj.schoolCount,
-                        scope: "(على مستوى المدرسة)",
-                        desc: `الاكثر تفعيلًا في المدرسة هذا الاسبوع`
-                    };
-                }
-
-                if (monthlyWinsObj.sectionCount > 0) {
-                    earnedBadgesMap["monthly_sec"] = {
-                        name: "فارس التفعيل الشهري",
-                        icon: "🏆",
-                        count: monthlyWinsObj.sectionCount,
-                        scope: "(على مستوى الشعبة)",
-                        desc: `الاكثر تفعيلا في صف ${currentStudentClass} لشهر نوفمبر`
-                    };
-                }
-                if (monthlyWinsObj.gradeCount > 0) {
-                    earnedBadgesMap["monthly_grade"] = {
-                        name: "فارس التفعيل الشهري",
-                        icon: "🚀",
-                        count: monthlyWinsObj.gradeCount,
-                        scope: "(على مستوى المرحلة)",
-                        desc: `الاكثر تفعيلا في صف ${gradeNameStr} لشهر نوفمبر`
-                    };
-                }
-                if (monthlyWinsObj.schoolCount > 0) {
-                    earnedBadgesMap["monthly_school"] = {
-                        name: "فارس التفعيل الشهري",
-                        icon: "👑🥇",
-                        count: monthlyWinsObj.schoolCount,
-                        scope: "(على مستوى المدرسة)",
-                        desc: `الاكثر تفعيلًا في المدرسة لشهر نوفمبر`
-                    };
-                }
-
-                let badgeKeys = Object.keys(earnedBadgesMap);
-                let totalCountSum = 0;
-                badgeKeys.forEach(k => { totalCountSum += earnedBadgesMap[k].count; });
-
-                let headerTitleHTML = `<h2>🎖️ أوسمتي وملصقات الإنجاز التكريمية: <span style="background: #fce4ec; color: var(--primary); padding: 2px 12px; border-radius: 8px; border: 1px solid #f8bbd0; font-size: 16px;">عدد الأوسمة (${toArabicNum(totalCountSum)})</span></h2>`;
+                let combinedArr = Object.values(combinedBest).sort((a, b) => b.points - a.points);
                 
-                let gridHTML = `<div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: start; width: 100%; margin-bottom: 25px;">`;
+                rawDataStore.combined = combinedArr;
+                renderListUI('combined', combinedArr);
 
-                if (badgeKeys.length > 0) {
-                    badgeKeys.forEach(k => {
-                        let b = earnedBadgesMap[k];
-                        let countBadgeHTML = b.count > 1 ? `<div style="position: absolute; top: -8px; left: -8px; background: #d81b60; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">×${toArabicNum(b.count)}</div>` : '';
+                processPeriodicActivation(allCombined);
 
-                        gridHTML += `
-                            <div class="badge-sticker" style="position: relative;">
-                                ${countBadgeHTML}
-                                <div class="badge-sticker-icon">${b.icon}</div>
-                                <div class="badge-sticker-name">${b.name}</div>
-                                <div style="font-size: 11px; color: var(--primary); font-weight: bold; margin: 2px 0;">${b.scope}</div>
-                                <div class="badge-sticker-desc">${b.desc}</div>
-                            </div>
-                        `;
-                    });
-                } else {
-                    gridHTML += `<div style="width: 100%; text-align: center; color: #64748b; font-size: 13px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px dashed #cbd5e1;">ليس لديك أوسمة ملصقة حتى الآن، العب أكثر واحصد النقاط لتظهر أوسمتك هنا! ⭐</div>`;
-                }
-                gridHTML += `</div>`;
-
-                container.innerHTML = headerTitleHTML + gridHTML;
-
-            } catch (e) {
-                console.error(e);
-                container.innerHTML = `<div style="width: 100%; text-align: center; color: #d32f2f; font-size: 13px;">تعذر تحميل الأوسمة والملصقات التكريمية.</div>`;
-            }
+            } catch (err) { console.error("Error loading leaderboards:", err); }
         }
 
-        function calculatePeriodicWinsDetailed(records, studentName, studentClass, periodType) {
-            let periodsMap = {};
+        function processPeriodicActivation(allRecords) {
+            let now = new Date();
+            let oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            let currentMonth = now.getMonth();
+            let currentYear = now.getFullYear();
 
-            records.forEach(item => {
+            let weeklyMap = {};
+            let monthlyMap = {};
+
+            allRecords.forEach(item => {
                 let d = item.created_at ? new Date(item.created_at) : new Date();
-                let periodKey = "";
+                let key = item.student_name + '_' + item.cls;
 
-                if (periodType === 'week') {
-                    let day = d.getDay();
-                    let diff = d.getDate() - day;
-                    let sunday = new Date(d.setDate(diff));
-                    periodKey = sunday.toISOString().split('T')[0];
-                } else {
-                    periodKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+                if (d >= oneWeekAgo) {
+                    if (!weeklyMap[key]) weeklyMap[key] = { student_name: item.student_name, cls: item.cls, points: 0, count: 0 };
+                    weeklyMap[key].points += item.points || 0;
+                    weeklyMap[key].count += 1;
                 }
 
-                if (!periodsMap[periodKey]) periodsMap[periodKey] = [];
-                periodsMap[periodKey].push(item);
+                if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                    if (!monthlyMap[key]) monthlyMap[key] = { student_name: item.student_name, cls: item.cls, points: 0, count: 0 };
+                    monthlyMap[key].points += item.points || 0;
+                    monthlyMap[key].count += 1;
+                }
             });
 
-            let sectionWins = 0;
-            let gradeWins = 0;
-            let schoolWins = 0;
-            let gradePrefix = studentClass.charAt(0);
+            let weeklyArr = Object.values(weeklyMap).sort((a, b) => b.points - a.points || b.count - a.count);
+            let monthlyArr = Object.values(monthlyMap).sort((a, b) => b.points - a.points || b.count - a.count);
 
-            Object.keys(periodsMap).forEach(period => {
-                let periodRecords = periodsMap[period];
-                let userScores = {};
+            document.getElementById('schoolWeeklyChamp').textContent = weeklyArr.length > 0 ? `${weeklyArr[0].student_name} (${weeklyArr[0].cls})` : 'لا توجد بيانات هذا الأسبوع';
+            document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
 
-                periodRecords.forEach(r => {
-                    let key = r.student_name + '_' + (r.cls || 'غير مصنف');
-                    let pts = r.points || 0;
-                    if (!userScores[key] || pts > userScores[key].points) {
-                        userScores[key] = { name: r.student_name, cls: r.cls || 'غير مصنف', score: pts + 50 };
-                    }
-                });
-
-                let sortedPeriodArr = Object.values(userScores).sort((a, b) => b.score - a.score);
-
-                let secArr = sortedPeriodArr.filter(s => s.cls === studentClass);
-                if (secArr.length > 0 && secArr[0].name === studentName) sectionWins++;
-
-                let gradeArr = sortedPeriodArr.filter(s => s.cls.startsWith(gradePrefix));
-                if (gradeArr.length > 0 && gradeArr[0].name === studentName) gradeWins++;
-
-                if (sortedPeriodArr.length > 0 && sortedPeriodArr[0].name === studentName) schoolWins++;
-            });
-
-            return { sectionCount: sectionWins, gradeCount: gradeWins, schoolCount: schoolWins };
+            renderGradeActivationGrids(weeklyArr, 'weeklyActiveGridsContainer');
+            renderGradeActivationGrids(monthlyArr, 'monthlyActiveGridsContainer');
         }
 
-        async function calculateStudentRanks(currentName, currentClass) {
-            try {
-                const [rocket, mine, mountain, snake] = await Promise.all([
-                    supabaseClient.from('rocket_scores').select('student_name, cls, points'),
-                    supabaseClient.from('goldmine_scores').select('student_name, cls, points'),
-                    supabaseClient.from('mountain_scores').select('student_name, cls, points'),
-                    supabaseClient.from('snake_scores').select('student_name, cls, points')
-                ]);
+        function renderGradeActivationGrids(dataArr, containerId) {
+            let gradeGroups = { 
+                '4': { title: '⭐️ الصف الرابع', students: [] }, 
+                '5': { title: '⭐️ الصف الخامس', students: [] },
+                '6': { title: '⭐️ الصف السادس', students: [] } 
+            };
 
-                let allRecords = [
-                    ...(rocket.data || []),
-                    ...(mine.data || []),
-                    ...(mountain.data || []),
-                    ...(snake.data || [])
-                ];
+            dataArr.forEach(item => {
+                let clsStr = String(item.cls).trim();
+                let prefix = clsStr.charAt(0);
+                if (gradeGroups[prefix]) {
+                    gradeGroups[prefix].students.push(item);
+                }
+            });
 
-                let studentBestPoints = {};
-                allRecords.forEach(item => {
-                    let key = item.student_name + '_' + (item.cls || 'غير مصنف');
-                    let pts = item.points || 0;
-                    if (!studentBestPoints[key] || pts > studentBestPoints[key].points) {
-                        studentBestPoints[key] = { name: item.student_name, cls: item.cls || 'غير مصنف', points: pts };
-                    }
-                });
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
 
-                let leaderboardArray = Object.values(studentBestPoints).sort((a, b) => b.points - a.points);
+            ['4', '5', '6'].forEach(key => {
+                let group = gradeGroups[key];
+                let studentsArr = group.students.sort((a, b) => b.points - a.points || b.count - a.count);
 
-                let sectionStudents = leaderboardArray.filter(s => s.cls === currentClass);
-                let sectionRank = sectionStudents.findIndex(s => s.name === currentName);
-                let sectionRankText = sectionRank !== -1 ? `المركز ${toArabicNum(sectionRank + 1)} 🎖️` : 'لم يسجل بعد';
+                let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
+                if (studentsArr.length === 0) {
+                    miniHTML += `<div style="text-align:center; color:#666; padding:6px; font-size:11px;">لا توجد نشاطات مسجلة</div>`;
+                } else {
+                    studentsArr.slice(0, 5).forEach((st, idx) => {
+                        let rankStr = rankNames[idx] || `المركز ${idx + 1}`;
+                        miniHTML += `
+                            <div class="rank-item">
+                                <span><b>${rankStr}</b>: ${st.student_name} (${st.cls})</span>
+                                <span style="color:var(--primary); font-weight:bold; font-size:11px;">${st.points} نقطة | ${st.count} مرات</span>
+                            </div>`;
+                    });
+                }
+                miniHTML += `</div></div>`;
+                container.innerHTML += miniHTML;
+            });
+        }
 
-                let currentGradePrefix = String(currentClass).trim().charAt(0);
-                let gradeStudents = leaderboardArray.filter(s => String(s.cls).trim().charAt(0) === currentGradePrefix);
-                let gradeRank = gradeStudents.findIndex(s => s.name === currentName && s.cls === currentClass);
-                let classRankText = gradeRank !== -1 ? `المركز ${toArabicNum(gradeRank + 1)} ⭐️` : 'لم يسجل بعد';
+        function renderGameList(gameKey, list) {
+            let bestMap = {};
+            list.forEach(item => {
+                let key = item.student_name + '_' + item.cls;
+                if (!bestMap[key] || item.points > bestMap[key].points) bestMap[key] = item;
+            });
+            let sortedArr = Object.values(bestMap).sort((a, b) => b.points - a.points);
+            rawDataStore[gameKey] = sortedArr;
+            renderListUI(gameKey, sortedArr);
+        }
 
-                let schoolRank = leaderboardArray.findIndex(s => s.name === currentName && s.cls === currentClass);
-                let schoolRankText = schoolRank !== -1 ? `المركز ${toArabicNum(schoolRank + 1)} 🥇` : 'لم يسجل بعد';
+        function renderListUI(gameKey, dataArr) {
+            const container = document.getElementById(gameKey + 'List');
+            const moreBtn = document.getElementById('more' + capitalize(gameKey));
+            
+            if (dataArr.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#666; padding:8px; font-size:11px;">لا توجد نتائج مسجلة.</div>';
+                if(moreBtn) moreBtn.classList.add('hidden');
+                return;
+            }
 
-                document.getElementById('sectionRankText').textContent = sectionRankText;
-                document.getElementById('classRankText').textContent = classRankText;
-                document.getElementById('schoolRankText').textContent = schoolRankText;
+            let maxDisplayLimit = showAllState[gameKey] ? Math.min(10, dataArr.length) : Math.min(5, dataArr.length);
+            let html = '';
 
-            } catch (e) {
-                document.getElementById('sectionRankText').textContent = 'تعذر الحساب';
-                document.getElementById('classRankText').textContent = 'تعذر الحساب';
-                document.getElementById('schoolRankText').textContent = 'تعذر الحساب';
+            for (let i = 0; i < maxDisplayLimit; i++) {
+                let row = dataArr[i];
+                let rankText = rankNames[i] || (i + 1);
+                let topClass = i === 0 ? 'top-1' : i === 1 ? 'top-2' : i === 2 ? 'top-3' : '';
+
+                html += `
+                    <div class="rank-item ${topClass}">
+                        <span><b>${rankText}</b>: ${row.student_name} (${row.cls})</span>
+                        <span style="color: #2e7d32; font-weight: bold; font-size:11px;">${row.points} ن</span>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            if (dataArr.length > 5) {
+                moreBtn.classList.remove('hidden');
+                moreBtn.textContent = showAllState[gameKey] ? 'إخفاء 👆' : 'المزيد 👇';
+            } else {
+                moreBtn.classList.add('hidden');
             }
         }
 
-        function toArabicNum(num) {
-            const arabicNumbers = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-            return String(num).replace(/\d/g, (d) => arabicNumbers[d]);
+        function toggleMore(gameKey) {
+            showAllState[gameKey] = !showAllState[gameKey];
+            renderListUI(gameKey, rawDataStore[gameKey]);
         }
 
-        function changeStudent() {
-            window.location.href = 'student.html';
-        }
-
-        function logoutStudentAndReturn() {
-            localStorage.removeItem('current_student');
-            window.location.reload();
+        function capitalize(s) {
+            return s.charAt(0).toUpperCase() + s.slice(1);
         }
     </script>
 </body>
