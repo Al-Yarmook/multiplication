@@ -27,7 +27,6 @@
             padding: 90px 15px 75px 15px; 
         }
         
-        /* تثبيت الهيدر في الأعلى مع جعله رابطاً للرئيسية */
         header { 
             position: fixed; 
             top: 0; 
@@ -47,7 +46,6 @@
 
         .container { max-width: 1100px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
         
-        /* تنسيق اللوحات الفاخرة بدلاً من الجداول التقليدية */
         .board-card { 
             background: white; 
             border-radius: 16px; 
@@ -58,7 +56,6 @@
         
         .board-title { color: var(--primary); margin-bottom: 15px; text-align: center; font-size: 20px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
-        /* تصميم الصفوف كلوحات متناسقة */
         .rank-list { display: flex; flex-direction: column; gap: 8px; }
         .rank-item { 
             display: flex; 
@@ -94,7 +91,7 @@
         /* شبكة أفقية لجداول الأكثر تفاعلاً حسب الصفوف */
         .active-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
             gap: 15px; 
         }
         .mini-board { 
@@ -106,11 +103,28 @@
         }
         .mini-board h3 { color: #1565c0; font-size: 15px; margin-bottom: 10px; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }
 
+        /* بطاقات الأبطال على مستوى المدرسة */
+        .school-champions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 5px;
+        }
+        .champion-card {
+            background: linear-gradient(135deg, #fff9fb 0%, #fdf2f8 100%);
+            border: 2px solid var(--primary);
+            border-radius: 14px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(216,27,96,0.08);
+        }
+        .champion-title { font-weight: 900; color: var(--primary); font-size: 15px; margin-bottom: 8px; }
+        .champion-name { font-size: 16px; font-weight: bold; color: #1e293b; }
+
         .back-container { text-align: center; margin-top: 10px; }
         .back-link { display: inline-block; color: var(--primary); text-decoration: none; font-weight: bold; font-size: 15px; }
         .back-link:hover { text-decoration: underline; }
 
-        /* تثبيت التذييل في الأسفل */
         footer.author-footer {
             position: fixed;
             bottom: 0;
@@ -132,12 +146,43 @@
 </head>
 <body>
 
-    <!-- الهيدر الثابت (عند الضغط عليه ينتقل للصفحة الرئيسية) -->
-    <header onclick="window.location.href='index.html'" title="الصفحة للرئيسية">
+    <header onclick="window.location.href='index.html'" title="العودة للرئيسية">
         <h1>🏆 منصة فرسان جدول الضرب - لوحة الفرسان 🏠</h1>
     </header>
 
     <div class="container">
+        
+        <!-- قسم الأبطال على مستوى المدرسة (الأسبوعي والشهري) -->
+        <div class="board-card">
+            <div class="board-title">🌟 أبطال التفعيل على مستوى المدرسة</div>
+            <div class="school-champions-grid">
+                <div class="champion-card">
+                    <div class="champion-title">الأكثر تفعيل في المدرسة لهذا الأسبوع 🏅</div>
+                    <div class="champion-name" id="schoolWeeklyChamp">جاري التحميل...</div>
+                </div>
+                <div class="champion-card">
+                    <div class="champion-title">الأكثر تفعيل في المدرسة لهذا الشهر 🏆</div>
+                    <div class="champion-name" id="schoolMonthlyChamp">جاري التحميل...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- فرسان التفعيل الأسبوعي حسب المرحلة (الصف الرابع بجانب الخامس والسادس) -->
+        <div class="board-card">
+            <div class="board-title">⚡ فرسان التفعيل الأسبوعي (حسب الصفوف)</div>
+            <div class="active-grid" id="weeklyActiveGridsContainer">
+                <p style="text-align: center; color: #666; grid-column: 1/-1;">جاري حساب النشاط الأسبوعي...</p>
+            </div>
+        </div>
+
+        <!-- فرسان التفعيل الشهري حسب المرحلة (بنفس طريقة العرض) -->
+        <div class="board-card">
+            <div class="board-title">🌙 فرسان التفعيل الشهري (حسب الصفوف)</div>
+            <div class="active-grid" id="monthlyActiveGridsContainer">
+                <p style="text-align: center; color: #666; grid-column: 1/-1;">جاري حساب النشاط الشهري...</p>
+            </div>
+        </div>
+
         <!-- الصدارة العامة -->
         <div class="board-card">
             <div class="board-title">⚔️ أبطال الصدارة العامة (جميع الألعاب مدمجة)</div>
@@ -147,9 +192,9 @@
             <button class="more-btn hidden" id="moreCombined" onclick="toggleMore('combined')">عرض المزيد 👇</button>
         </div>
 
-        <!-- الأكثر تفاعلاً (بشكل أفقي متناسق) - تم نقله للأعلى -->
+        <!-- لوحة الأكثر تفاعلاً ونشاطاً التاريخية -->
         <div class="board-card">
-            <div class="board-title">🔥 لوحة الأكثر تفاعلاً ونشاطاً (حسب الصفوف)</div>
+            <div class="board-title">🔥 لوحة الأكثر تفاعلاً ونشاطاً التراكمية</div>
             <div class="active-grid" id="activeGridsContainer">
                 <p style="text-align: center; color: #666; grid-column: 1/-1;">جاري تحليل الأنشطة...</p>
             </div>
@@ -196,45 +241,31 @@
         </div>
     </div>
 
-    <!-- التذييل الثابت -->
     <footer class="author-footer">
         إعداد أ. صادق القلعاوي | مدرسة اليرموك الابتدائية للبنين 🏫✨
     </footer>
 
     <script>
-        const rankNames = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع", "الثامن", "التاسع", "العاشر"];
+        const rankNames = ["المركز الأول", "المركز الثاني", "المركز الثالث", "المركز الرابع", "المركز الخامس", "المركز السادس", "المركز السابع", "المركز الثامن", "المركز التاسع", "المركز العاشر"];
 
-        let rawDataStore = {
-            combined: [],
-            rocket: [],
-            mine: [],
-            mountain: [],
-            snake: []
-        };
-
-        let showAllState = {
-            combined: false,
-            rocket: false,
-            mine: false,
-            mountain: false,
-            snake: false
-        };
+        let rawDataStore = { combined: [], rocket: [], mine: [], mountain: [], snake: [] };
+        let showAllState = { combined: false, rocket: false, mine: false, mountain: false, snake: false };
 
         document.addEventListener('DOMContentLoaded', () => { fetchAllLeaderboards(); });
 
         async function fetchAllLeaderboards() {
             try {
-                const { data: rocketData } = await supabaseClient.from('rocket_scores').select('*');
-                let rocketList = rocketData ? rocketData.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0 })) : [];
+                const [rocketData, mineData, mountainData, snakeData] = await Promise.all([
+                    supabaseClient.from('rocket_scores').select('*'),
+                    supabaseClient.from('goldmine_scores').select('*'),
+                    supabaseClient.from('mountain_scores').select('*'),
+                    supabaseClient.from('snake_scores').select('*')
+                ]);
 
-                const { data: mineData } = await supabaseClient.from('goldmine_scores').select('*');
-                let mineList = mineData ? mineData.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0 })) : [];
-
-                const { data: mountainData } = await supabaseClient.from('mountain_scores').select('*');
-                let mountainList = mountainData ? mountainData.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0 })) : [];
-
-                const { data: snakeData } = await supabaseClient.from('snake_scores').select('*');
-                let snakeList = snakeData ? snakeData.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, weekly_points: i.weekly_points || 0 })) : [];
+                let rocketList = rocketData.data ? rocketData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
+                let mineList = mineData.data ? mineData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
+                let mountainList = mountainData.data ? mountainData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
+                let snakeList = snakeData.data ? snakeData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
 
                 renderGameList('rocket', rocketList);
                 renderGameList('mine', mineList);
@@ -252,33 +283,122 @@
                 rawDataStore.combined = combinedArr;
                 renderListUI('combined', combinedArr);
 
-                // معالجة الأكثر تفاعلاً حسب الصفوف
-                let gradeGroups = { '3': { title: '⭐️ الصف الثالث', students: {} }, '4': { title: '⭐️ الصف الرابع', students: {} }, '5': { title: '⭐️ الصف الخامس', students: {} }, '6': { title: '⭐️ الصف السادس', students: {} }, 'other': { title: '⭐️ صفوف أخرى', students: {} } };
-                allCombined.forEach(item => {
-                    let clsStr = String(item.cls).trim();
-                    let groupKey = gradeGroups[clsStr.charAt(0)] ? clsStr.charAt(0) : 'other';
-                    let studentKey = item.student_name + '_' + clsStr;
-                    if (!gradeGroups[groupKey].students[studentKey]) gradeGroups[groupKey].students[studentKey] = { student_name: item.student_name, cls: clsStr, count: 0 };
-                    gradeGroups[groupKey].students[studentKey].count++;
-                });
+                // معالجة الأكثر تفاعلاً (تراكمي عام)
+                processActiveGrids(allCombined, 'activeGridsContainer', false);
 
-                const activeContainer = document.getElementById('activeGridsContainer');
-                activeContainer.innerHTML = '';
-                ['3', '4', '5', '6', 'other'].forEach(key => {
-                    let group = gradeGroups[key];
-                    let studentsArr = Object.values(group.students).sort((a, b) => b.count - a.count);
-                    if (studentsArr.length === 0) return;
-
-                    let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
-                    studentsArr.slice(0, 5).forEach((st, idx) => {
-                        let rankStr = rankNames[idx] || (idx + 1);
-                        miniHTML += `<div class="rank-item"><span><b>${rankStr}</b> - ${st.student_name} (${st.cls})</span><span style="color:var(--primary); font-weight:bold;">${st.count} مرات</span></div>`;
-                    });
-                    miniHTML += `</div></div>`;
-                    activeContainer.innerHTML += miniHTML;
-                });
+                // معالجة فرسان التفعيل الأسبوعي والشهري حسب الفترات الزمنية
+                processPeriodicActivation(allCombined);
 
             } catch (err) { console.error("Error loading leaderboards:", err); }
+        }
+
+        function processPeriodicActivation(allRecords) {
+            let now = new Date();
+            let oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            let currentMonth = now.getMonth();
+            let currentYear = now.getFullYear();
+
+            let weeklyMap = {};
+            let monthlyMap = {};
+
+            allRecords.forEach(item => {
+                let d = item.created_at ? new Date(item.created_at) : new Date();
+                let key = item.student_name + '_' + item.cls;
+
+                // تصفية الأسبوعي (آخر 7 أيام)
+                if (d >= oneWeekAgo) {
+                    if (!weeklyMap[key]) weeklyMap[key] = { student_name: item.student_name, cls: item.cls, points: 0, count: 0 };
+                    weeklyMap[key].points += item.points || 0;
+                    weeklyMap[key].count += 1;
+                }
+
+                // تصفية الشهري (الشهر الميلادي الحالي)
+                if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                    if (!monthlyMap[key]) monthlyMap[key] = { student_name: item.student_name, cls: item.cls, points: 0, count: 0 };
+                    monthlyMap[key].points += item.points || 0;
+                    monthlyMap[key].count += 1;
+                }
+            });
+
+            let weeklyArr = Object.values(weeklyMap).sort((a, b) => b.points - a.points || b.count - a.count);
+            let monthlyArr = Object.values(monthlyMap).sort((a, b) => b.points - a.points || b.count - a.count);
+
+            // أبطال المدرسة
+            document.getElementById('schoolWeeklyChamp').textContent = weeklyArr.length > 0 ? `${weeklyArr[0].student_name} (${weeklyArr[0].cls})` : 'لا توجد بيانات هذا الأسبوع';
+            document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
+
+            // عرض فرسان الأسبوع (الصف الرابع وبجانبه الخامس والسادس)
+            renderGradeActivationGrids(weeklyArr, 'weeklyActiveGridsContainer');
+            // عرض فرسان الشهر
+            renderGradeActivationGrids(monthlyArr, 'monthlyActiveGridsContainer');
+        }
+
+        function renderGradeActivationGrids(dataArr, containerId) {
+            let gradeGroups = { 
+                '4': { title: '⭐️ الصف الرابع', students: [] }, 
+                '5_6': { title: '⭐️ الصفان الخامس والسادس', students: [] } 
+            };
+
+            dataArr.forEach(item => {
+                let clsStr = String(item.cls).trim();
+                let prefix = clsStr.charAt(0);
+                if (prefix === '4') {
+                    gradeGroups['4'].students.push(item);
+                } else if (prefix === '5' || prefix === '6') {
+                    gradeGroups['5_6'].students.push(item);
+                }
+            });
+
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            ['4', '5_6'].forEach(key => {
+                let group = gradeGroups[key];
+                let studentsArr = group.students.sort((a, b) => b.points - a.points || b.count - a.count);
+
+                let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
+                if (studentsArr.length === 0) {
+                    miniHTML += `<div style="text-align:center; color:#666; padding:10px; font-size:13px;">لا توجد نشاطات مسجلة</div>`;
+                } else {
+                    studentsArr.slice(0, 5).forEach((st, idx) => {
+                        let rankStr = rankNames[idx] || `المركز ${idx + 1}`;
+                        miniHTML += `
+                            <div class="rank-item">
+                                <span><b>${rankStr}</b>: ${st.student_name} (${st.cls})</span>
+                                <span style="color:var(--primary); font-weight:bold; font-size:12px;">${st.points} نقطة | ${st.count} مرات</span>
+                            </div>`;
+                    });
+                }
+                miniHTML += `</div></div>`;
+                container.innerHTML += miniHTML;
+            });
+        }
+
+        function processActiveGrids(allCombined, containerId, isPeriodic) {
+            let gradeGroups = { '3': { title: '⭐️ الصف الثالث', students: {} }, '4': { title: '⭐️ الصف الرابع', students: {} }, '5': { title: '⭐️ الصف الخامس', students: {} }, '6': { title: '⭐️ الصف السادس', students: {} }, 'other': { title: '⭐️ صفوف أخرى', students: {} } };
+            allCombined.forEach(item => {
+                let clsStr = String(item.cls).trim();
+                let groupKey = gradeGroups[clsStr.charAt(0)] ? clsStr.charAt(0) : 'other';
+                let studentKey = item.student_name + '_' + clsStr;
+                if (!gradeGroups[groupKey].students[studentKey]) gradeGroups[groupKey].students[studentKey] = { student_name: item.student_name, cls: clsStr, count: 0 };
+                gradeGroups[groupKey].students[studentKey].count++;
+            });
+
+            const activeContainer = document.getElementById(containerId);
+            activeContainer.innerHTML = '';
+            ['3', '4', '5', '6', 'other'].forEach(key => {
+                let group = gradeGroups[key];
+                let studentsArr = Object.values(group.students).sort((a, b) => b.count - a.count);
+                if (studentsArr.length === 0) return;
+
+                let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
+                studentsArr.slice(0, 5).forEach((st, idx) => {
+                    let rankStr = rankNames[idx] || (idx + 1);
+                    miniHTML += `<div class="rank-item"><span><b>${rankStr}</b> - ${st.student_name} (${st.cls})</span><span style="color:var(--primary); font-weight:bold;">${st.count} مرات</span></div>`;
+                });
+                miniHTML += `</div></div>`;
+                activeContainer.innerHTML += miniHTML;
+            });
         }
 
         function renderGameList(gameKey, list) {
@@ -302,7 +422,6 @@
                 return;
             }
 
-            // تحديد الحد الأقصى للعرض: إما أول 5 أو حتى 10 مراكز كحد أقصى عند تفعيل عرض المزيد
             let maxDisplayLimit = showAllState[gameKey] ? Math.min(10, dataArr.length) : Math.min(5, dataArr.length);
             let html = '';
 
@@ -322,7 +441,6 @@
 
             container.innerHTML = html;
 
-            // إظهار زر المزيد فقط إذا كان هناك أكثر من 5 طلاب، ويكتفي بعرض 10 مراكز كحد أقصى
             if (dataArr.length > 5) {
                 moreBtn.classList.remove('hidden');
                 moreBtn.textContent = showAllState[gameKey] ? 'إخفاء 👆' : 'عرض المزيد (حتى العاشر) 👇';
