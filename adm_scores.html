@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>درجات الطلاب ولوحات الشرف - فرسان جدول الضرب</title>
+    <title>درجات الطلاب والأوسمة - فرسان جدول الضرب</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="config.js"></script>
@@ -30,12 +30,23 @@
         .btn:hover { background: var(--primary-hover); }
         .btn-green { background: #2e7d32; }
         .btn-green:hover { background: #1b5e20; }
-        .btn-blue { background: #1565c0; }
-        .btn-blue:hover { background: #0d47a1; }
         .btn-red { background: #d32f2f; }
         .btn-red:hover { background: #b71c1c; }
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
-        select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Cairo'; max-width: 250px; }
+        select, input[type="date"] { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Cairo'; max-width: 250px; }
+        
+        .active-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-top: 15px; }
+        .mini-board { background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 12px; padding: 15px; }
+        .mini-board h3 { color: #1565c0; font-size: 15px; margin-bottom: 10px; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
+        .rank-list { display: flex; flex-direction: column; gap: 6px; }
+        .rank-item { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; background: white; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 12px; }
+        .rank-item.top-1 { background: #fef3c7; border-color: #fde68a; font-weight: bold; }
+        
+        .school-champions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 15px; }
+        .champion-card { background: linear-gradient(135deg, #fff9fb 0%, #fdf2f8 100%); border: 2px solid var(--primary); border-radius: 14px; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(216,27,96,0.08); }
+        .champion-title { font-weight: 900; color: var(--primary); font-size: 14px; margin-bottom: 8px; }
+        .champion-name { font-size: 16px; font-weight: bold; color: #1e293b; }
+
         .hidden { display: none !important; }
         footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
     </style>
@@ -44,15 +55,67 @@
 
     <div class="container">
         <header>
-            <h1 id="welcomeTitle">درجات الطلاب ولوحات الشرف</h1>
+            <h1 id="welcomeTitle">درجات الطلاب ولوحات الشرف والأوسمة</h1>
             <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
         </header>
 
         <!-- مكان ظهور شريط التنقل العلوي الموحد -->
         <div id="admin-nav-container"></div>
 
+        <!-- قسم لوحات الشرف والأوسمة مع فلتر الأسابيع السابقة -->
         <div class="section-card">
-            <h2>سجل درجات الطلاب ولوحة الصدارة 📊</h2>
+            <h2 style="color: var(--primary); margin-bottom: 15px;">🎖️ أبطال التفعيل (الأسبوعي والشهري)</h2>
+            
+            <div class="form-row" style="background: #f8fafc; padding: 12px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; width: 100%;">
+                    <label style="font-weight:700;">📅 اختر الأسبوع للاستعلام:</label>
+                    <select id="weekSelector" onchange="updateWeekRangeAndLoadBadges()" style="max-width: 300px;">
+                        <option value="current">الأسبوع الحالي (ديناميكي)</option>
+                        <option value="prev_1">الأسبوع الماضي (السابق مباشرة)</option>
+                        <option value="prev_2">قبل أسبوعين</option>
+                        <option value="prev_3">قبل 3 أسابيع</option>
+                        <option value="custom">تحديد تاريخ مخصص...</option>
+                    </select>
+
+                    <div id="customDateContainer" class="hidden" style="display: flex; gap: 10px; align-items: center;">
+                        <label style="font-size: 12px;">من:</label>
+                        <input type="date" id="customStartDate" onchange="loadBadgesData()">
+                        <label style="font-size: 12px;">إلى:</label>
+                        <input type="date" id="customEndDate" onchange="loadBadgesData()">
+                    </div>
+                </div>
+            </div>
+
+            <div id="periodDisplayInfo" style="text-align: center; font-weight: bold; color: #64748b; margin-bottom: 15px; font-size: 13px;"></div>
+
+            <!-- أبطال المدرسة -->
+            <div class="school-champions-grid">
+                <div class="champion-card">
+                    <div class="champion-title">🏅 الأكثر تفعيل في المدرسة (هذا الأسبوع)</div>
+                    <div class="champion-name" id="schoolWeeklyChamp">جاري التحميل...</div>
+                </div>
+                <div class="champion-card">
+                    <div class="champion-title">🏆 الأكثر تفعيل في المدرسة (الشهر الحالي)</div>
+                    <div class="champion-name" id="schoolMonthlyChamp">جاري التحميل...</div>
+                </div>
+            </div>
+
+            <!-- فرسان التفعيل الأسبوعي حسب الصفوف -->
+            <h3 style="color: #1565c0; font-size: 16px; margin-top: 20px; margin-bottom: 5px;">⚡ فرسان التفعيل الأسبوعي (للفترة المحددة)</h3>
+            <div class="active-grid" id="weeklyActiveGridsContainer">
+                <p style="text-align: center; color: #666; grid-column: 1/-1;">جاري التحميل...</p>
+            </div>
+
+            <!-- فرسان التفعيل الشهري حسب الصفوف -->
+            <h3 style="color: #1565c0; font-size: 16px; margin-top: 25px; margin-bottom: 5px;">🌙 فرسان التفعيل الشهري (الشهر الميلادي الحالي)</h3>
+            <div class="active-grid" id="monthlyActiveGridsContainer">
+                <p style="text-align: center; color: #666; grid-column: 1/-1;">جاري التحميل...</p>
+            </div>
+        </div>
+
+        <!-- قسم سجل الدرجات والتراكمي -->
+        <div class="section-card">
+            <h2>📊 سجل درجات الطلاب وصدارة الألعاب (تراكمي)</h2>
             
             <div class="form-row">
                 <div style="display: flex; gap: 10px; align-items: center; flex: 1; flex-wrap: wrap;">
@@ -103,15 +166,15 @@
     <script>
         let currentUser = JSON.parse(localStorage.getItem('current_staff_user'));
         let teacherClassesFromCloud = [];
+        const rankNames = ["المركز الأول", "المركز الثاني", "المركز الثالث", "المركز الرابع", "المركز الخامس", "المركز السادس", "المركز السابع", "المركز الثامن", "المركز التاسع", "المركز العاشر"];
 
         if(!currentUser) { 
             window.location.href = 'staff.html'; 
         } else {
             const roleVal = String(currentUser.role || 'Teacher').trim().toLowerCase();
             const roleName = (roleVal === 'admin' || roleVal === 'مدير') ? 'مدير النظام' : (roleVal === 'supervisor' || roleVal === 'مشرف') ? 'مشرف' : 'معلم';
-            document.getElementById('welcomeTitle').textContent = `درجات الطلاب (${currentUser.name || 'مستخدم'} - ${roleName})`;
+            document.getElementById('welcomeTitle').textContent = `درجات الطلاب والأوسمة (${currentUser.name || 'مستخدم'} - ${roleName})`;
 
-            // تكييف الواجهة حسب صلاحيات دور المستخدم
             if(roleVal === 'teacher' || roleVal === 'معلم') {
                 document.querySelectorAll('.role-admin-sup').forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('.admin-only-tab').forEach(el => el.classList.add('hidden'));
@@ -124,9 +187,9 @@
         document.addEventListener('DOMContentLoaded', async () => {
             await fetchTeacherAssignedClasses();
             loadScores();
+            loadBadgesData();
         });
 
-        // جلب صفوف المعلم المحددة في جدول class_teachers بالسحابة بناءً على اسم المستخدم
         async function fetchTeacherAssignedClasses() {
             const roleVal = String(currentUser.role || '').trim().toLowerCase();
             const isTeacher = (roleVal === 'teacher' || roleVal === 'معلم');
@@ -145,10 +208,10 @@
                         teacherClassesFromCloud = currentUser.classes.split(',').map(c => c.trim());
                         document.getElementById('filterNotice').textContent = `* تظهر لك درجات طلاب صفوفك فقط: (${teacherClassesFromCloud.join(', ')})`;
                     } else {
-                        document.getElementById('filterNotice').textContent = `* لم يتم العثور على صفوف مسندة لحسابك في السحابة. يرجى مراجعة الإدارة.`;
+                        document.getElementById('filterNotice').textContent = `* لم يتم العثور على صفوف مسندة لحسابك في السحابة.`;
                     }
                 } catch (err) {
-                    console.error("خطأ في جلب صفوف المعلم من السحابة:", err);
+                    console.error("خطأ في جلب صفوف المعلم:", err);
                     if (currentUser.classes) {
                         teacherClassesFromCloud = currentUser.classes.split(',').map(c => c.trim());
                     }
@@ -156,16 +219,180 @@
             }
         }
 
+        // حساب النطاق الزمني للأسبوع بناءً على الفلتر المختار
+        function getSelectedWeekRange() {
+            let selector = document.getElementById('weekSelector').value;
+            let now = new Date();
+            let start = new Date(now);
+            let end = new Date(now);
+
+            if (selector === 'current') {
+                let currentDayOfWeek = now.getDay();
+                start.setDate(now.getDate() - currentDayOfWeek);
+                start.setHours(0, 0, 0, 0);
+                end = new Date(start);
+                end.setDate(start.getDate() + 6);
+                end.setHours(23, 59, 59, 999);
+            } else if (selector.startsWith('prev_')) {
+                let weeksAgo = parseInt(selector.split('_')[1]);
+                let currentDayOfWeek = now.getDay();
+                start.setDate(now.getDate() - currentDayOfWeek - (7 * weeksAgo));
+                start.setHours(0, 0, 0, 0);
+                end = new Date(start);
+                end.setDate(start.getDate() + 6);
+                end.setHours(23, 59, 59, 999);
+            } else if (selector === 'custom') {
+                document.getElementById('customDateContainer').classList.remove('hidden');
+                let customStart = document.getElementById('customStartDate').value;
+                let customEnd = document.getElementById('customEndDate').value;
+                if (customStart) start = new Date(customStart);
+                if (customEnd) {
+                    end = new Date(customEnd);
+                    end.setHours(23, 59, 59, 999);
+                }
+            }
+
+            if (selector !== 'custom') {
+                document.getElementById('customDateContainer').classList.add('hidden');
+            }
+
+            return { start, end };
+        }
+
+        function updateWeekRangeAndLoadBadges() {
+            loadBadgesData();
+        }
+
+        // تحميل وتحليل بيانات الأوسمة والتفعيل الأسبوعي والشهري مع الفلتر
+        async function loadBadgesData() {
+            try {
+                const [rocket, mine, mountain, snake] = await Promise.all([
+                    supabaseClient.from('rocket_scores').select('*'),
+                    supabaseClient.from('goldmine_scores').select('*'),
+                    supabaseClient.from('mountain_scores').select('*'),
+                    supabaseClient.from('snake_scores').select('*')
+                ]);
+
+                let allRecords = [
+                    ...(rocket.data || []),
+                    ...(mine.data || []),
+                    ...(mountain.data || []),
+                    ...(snake.data || [])
+                ].map(i => ({
+                    student_name: i.student_name,
+                    cls: i.cls || 'غير مصنف',
+                    points: i.points || 0,
+                    created_at: i.created_at ? new Date(i.created_at) : null
+                })).filter(i => i.points > 0);
+
+                let { start: weeklyStart, end: weeklyEnd } = getSelectedWeekRange();
+                let formatDateStr = (d) => `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+                document.getElementById('periodDisplayInfo').textContent = `📅 الفترة المحددة للتفعيل الأسبوعي: من ${formatDateStr(weeklyStart)} إلى ${formatDateStr(weeklyEnd)}`;
+
+                let now = new Date();
+                let currentMonth = now.getMonth();
+                let currentYear = now.getFullYear();
+
+                let weeklyMap = {};
+                let monthlyMap = {};
+
+                allRecords.forEach(item => {
+                    let d = item.created_at;
+                    let key = item.student_name + '_' + item.cls;
+
+                    // تفعيل الفترة المحددة (الأسبوعي)
+                    if (d && d >= weeklyStart && d <= weeklyEnd) {
+                        if (!weeklyMap[key]) weeklyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
+                        weeklyMap[key].totalPoints = Math.max(weeklyMap[key].totalPoints, item.points);
+                        weeklyMap[key].count += 1;
+                    }
+
+                    // تفعيل الشهر الحالي
+                    if (d && d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                        if (!monthlyMap[key]) monthlyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
+                        monthlyMap[key].totalPoints = Math.max(monthlyMap[key].totalPoints, item.points);
+                        monthlyMap[key].count += 1;
+                    }
+                });
+
+                let evaluateAndSort = (mapObj) => {
+                    return Object.values(mapObj).map(u => ({
+                        student_name: u.student_name,
+                        cls: u.cls,
+                        points: u.totalPoints,
+                        count: u.count,
+                        customScore: (u.totalPoints * u.count) + u.totalPoints
+                    })).sort((a, b) => b.customScore - a.customScore);
+                };
+
+                let weeklyArr = evaluateAndSort(weeklyMap);
+                let monthlyArr = evaluateAndSort(monthlyMap);
+
+                // تطبيق صلاحيات المعلم (إن كان معلماً، يعرض أبطال صفوفه فقط في الملخصات إن أردت، أو المدرسة العامة)
+                document.getElementById('schoolWeeklyChamp').textContent = weeklyArr.length > 0 ? `${weeklyArr[0].student_name} (${weeklyArr[0].cls})` : 'لا توجد بيانات في هذه الفترة';
+                document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
+
+                renderGradeGrids(weeklyArr, 'weeklyActiveGridsContainer');
+                renderGradeGrids(monthlyArr, 'monthlyActiveGridsContainer');
+
+            } catch (err) {
+                console.error("خطأ في جلب بيانات الأوسمة:", err);
+            }
+        }
+
+        function renderGradeGrids(dataArr, containerId) {
+            let gradeGroups = { 
+                '4': { title: '⭐️ الصف الرابع', students: [] }, 
+                '5': { title: '⭐️ الصف الخامس', students: [] },
+                '6': { title: '⭐️ الصف السادس', students: [] } 
+            };
+
+            const roleVal = String(currentUser.role || '').trim().toLowerCase();
+            const isTeacher = (roleVal === 'teacher' || roleVal === 'معلم');
+
+            dataArr.forEach(item => {
+                if (isTeacher && !teacherClassesFromCloud.includes(String(item.cls).trim())) return;
+                let clsStr = String(item.cls).trim();
+                let prefix = clsStr.charAt(0);
+                if (gradeGroups[prefix]) {
+                    gradeGroups[prefix].students.push(item);
+                }
+            });
+
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            ['4', '5', '6'].forEach(key => {
+                let group = gradeGroups[key];
+                let studentsArr = group.students;
+
+                let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
+                if (studentsArr.length === 0) {
+                    miniHTML += `<div style="text-align:center; color:#666; padding:6px; font-size:11px;">لا توجد نشاطات مسجلة</div>`;
+                } else {
+                    studentsArr.slice(0, 5).forEach((st, idx) => {
+                        let rankStr = rankNames[idx] || `المركز ${idx + 1}`;
+                        miniHTML += `
+                            <div class="rank-item">
+                                <span><b>${rankStr}</b>: ${st.student_name} (${st.cls})</span>
+                                <span style="color:var(--primary); font-weight:bold; font-size:11px;">${st.points} ن | ${st.count} مرات</span>
+                            </div>`;
+                    });
+                }
+                miniHTML += `</div></div>`;
+                container.innerHTML += miniHTML;
+            });
+        }
+
+        // تحميل سجل الدرجات التراكمي
         async function loadScores() {
             const selectedGame = document.getElementById('gameFilter').value;
-            
             let tableName = 'rocket_scores';
             if (selectedGame === 'goldmine') tableName = 'goldmine_scores';
             else if (selectedGame === 'mountain') tableName = 'mountain_scores';
             else if (selectedGame === 'snake') tableName = 'snake_scores';
 
             const limitVal = document.getElementById('viewLimitFilter').value;
-
             let query = supabaseClient.from(tableName).select('*').order('points', { ascending: false });
             
             if(limitVal !== 'all') {
@@ -177,7 +404,7 @@
             tbody.innerHTML = '';
             
             if(error) {
-                tbody.innerHTML = `<tr><td colspan="6" style="color:red;">لا توجد نتائج مسجلة حتى الآن أو تعذر الاتصال بالسحابة.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" style="color:red;">لا توجد نتائج مسجلة حتى الآن.</td></tr>`;
                 return;
             }
 
@@ -190,15 +417,12 @@
 
                 data.forEach(sc => {
                     if(isTeacher) {
-                        if(!sc.cls || !teacherClassesFromCloud.includes(String(sc.cls).trim())) {
-                            return; 
-                        }
+                        if(!sc.cls || !teacherClassesFromCloud.includes(String(sc.cls).trim())) return; 
                     }
 
                     displayedCount++;
                     let scoreId = sc.id;
                     let dateStr = sc.created_at ? new Date(sc.created_at).toLocaleString('ar-BH') : '-';
-                    
                     let actionCell = isTeacher ? '' : `<td><button class="btn btn-red" style="padding: 4px 8px; font-size: 12px;" onclick="deleteSingleScore('${scoreId}', '${tableName}')">حذف 🗑️</button></td>`;
 
                     tbody.innerHTML += `
@@ -229,7 +453,7 @@
             if(!confirm('هل أنت متأكد من حذف هذه النتيجة نهائياً؟')) return;
             const { error } = await supabaseClient.from(tableName).delete().eq('id', scoreId);
             if(error) alert('خطأ أثناء الحذف: ' + error.message);
-            else { alert('✅ تم حذف النتيجة بنجاح!'); loadScores(); }
+            else { alert('✅ تم حذف النتيجة بنجاح!'); loadScores(); loadBadgesData(); }
         }
 
         function exportScoresExcel() {
