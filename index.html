@@ -98,10 +98,10 @@
         .rank-badge-item span { color: var(--primary); font-size: 15px; display: block; margin-top: 3px; }
 
         /* قسم الأوسمة والملصقات بجانب بعضها البعض */
-        .badge-sticker { background: linear-gradient(135deg, #fff 0%, #fdf2f8 100%); border: 2px solid var(--primary); border-radius: 14px; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(216,27,96,0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 150px; flex: 1; max-width: 190px; }
+        .badge-sticker { background: linear-gradient(135deg, #fff 0%, #fdf2f8 100%); border: 2px solid var(--primary); border-radius: 14px; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(216,27,96,0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 170px; flex: 1; max-width: 210px; }
         .badge-sticker-icon { font-size: 38px; margin-bottom: 5px; }
-        .badge-sticker-name { font-weight: 900; color: var(--primary); font-size: 14px; margin-bottom: 3px; }
-        .badge-sticker-desc { font-size: 11px; color: #64748b; font-weight: 600; }
+        .badge-sticker-name { font-weight: 900; color: var(--primary); font-size: 13px; margin-bottom: 3px; line-height: 1.4; }
+        .badge-sticker-desc { font-size: 11px; color: #64748b; font-weight: 600; line-height: 1.3; }
 
         .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
         @media (max-width: 600px) { .games-grid { grid-template-columns: 1fr; } }
@@ -276,7 +276,7 @@
             checkAndDisplayStudentBadges(studentData.name, studentData.cls);
         }
 
-        // دالة فحص وتجميع وعرض عدد الأوسمة وتفاصيلها بجانب بعضها البعض مع عداد التكرار
+        // دالة فحص وتجميع وعرض عدد الأوسمة وتفاصيلها بجانب بعضها البعض مع عداد التكرار والتسميات المطلوبة
         async function checkAndDisplayStudentBadges(currentStudentName, currentStudentClass) {
             const container = document.getElementById('studentBadgesContainer');
             try {
@@ -295,20 +295,11 @@
                     ...(snake.data || [])
                 ];
 
-                let studentStats = {};
                 let studentTotalPoints = 0;
-
                 allRecords.forEach(item => {
                     let name = item.student_name;
                     let cls = item.cls || 'غير مصنف';
-                    let key = name + '_' + cls;
                     let pts = item.points || 0;
-
-                    if (!studentStats[key]) {
-                        studentStats[key] = { name, cls, totalPoints: 0 };
-                    }
-                    studentStats[key].totalPoints = Math.max(studentStats[key].totalPoints, pts);
-
                     if (name === currentStudentName && cls === currentStudentClass) {
                         studentTotalPoints = Math.max(studentTotalPoints, pts);
                     }
@@ -316,7 +307,7 @@
 
                 let badgesMap = {};
 
-                // أوسمة المعلم الممنوحة يدوياً من السحابة
+                // 1. أوسمة المعلم الممنوحة يدوياً من السحابة
                 if (cloudBadges.data && cloudBadges.data.length > 0) {
                     cloudBadges.data.forEach(cb => {
                         let bName = cb.badge_name;
@@ -327,7 +318,7 @@
                     });
                 }
 
-                // أوسمة النقاط التراكمية الدائمة
+                // 2. أوسمة النقاط التراكمية الدائمة
                 if (studentTotalPoints >= 1000) {
                     badgesMap["وسام 1,000 نقطة"] = { name: "وسام 1,000 نقطة", icon: "🥉", count: 1, desc: "تجاوز 1000 نقطة" };
                 }
@@ -341,13 +332,22 @@
                     badgesMap["وسام 10,000 نقطة"] = { name: "وسام 10,000 نقطة", icon: "💎", count: 1, desc: "بطل الأساطير" };
                 }
 
-                // أوسمة التميز الأسبوعي والشهري (أمثلة افتراضية قابلة للتراكم والظهور الدائم)
-                badgesMap["النشيط أسبوعياً (الشعبة)"] = { name: "النشيط أسبوعياً (الشعبة)", icon: "🌟", count: 2, desc: "الأكثر تفاعلاً (تكرر مرتين)" };
-                badgesMap["متميز الشهر (المدرسة)"] = { name: "متميز الشهر (المدرسة)", icon: "👑🥇", count: 1, desc: "بطل الشهر الأول للمدرسة" };
+                // 3. حساب الفترات الزمنية الفعلية (أسبوعياً تبدأ كل أحد، شهرياً تبدأ أول كل شهر)
+                let weeklyWins = calculatePeriodicWins(allRecords, currentStudentName, currentStudentClass, 'week');
+                let monthlyWins = calculatePeriodicWins(allRecords, currentStudentName, currentStudentClass, 'month');
+
+                // التسميات المطلوبة بدقة:
+                if (weeklyWins.sectionCount > 0) {
+                    badgesMap["فارس التفعيل الأسبوعي"] = { name: "فارس التفعيل الأسبوعي", icon: "🌟", count: weeklyWins.sectionCount, desc: `(على مستوى الشعبة)\nالاكثر تفعيلا في صف ${currentStudentClass} هذا الاسبوع` };
+                }
+                if (monthlyWins.gradeCount > 0) {
+                    badgesMap["فارس التفعيل الشهري (المرحلة)"] = { name: "فارس التفعيل الشهري", icon: "🚀", count: monthlyWins.gradeCount, desc: `(على مستوى المرحلة)\nالاكثر تفعيلا في صف ${currentStudentClass.charAt(0)} لشهر نوفمبر` };
+                }
+                if (monthlyWins.schoolCount > 0) {
+                    badgesMap["فارس التفعيل الشهري (المدرسة)"] = { name: "فارس التفعيل الشهري", icon: "👑🥇", count: monthlyWins.schoolCount, desc: `(على مستوى المدرسة)\nالاكثر تفعيلًا في المدرسة لشهر نوفمبر` };
+                }
 
                 let badgeKeys = Object.keys(badgesMap);
-                let totalBadgesCount = badgeKeys.reduce((sum, k) => sum + badgesMap[k], 0);
-                // حساب إجمالي عدد الأوسمة التراكمي
                 let totalCountSum = 0;
                 badgeKeys.forEach(k => { totalCountSum += badgesMap[k].count; });
 
@@ -360,12 +360,15 @@
                         let b = badgesMap[k];
                         let countBadgeHTML = b.count > 1 ? `<div style="position: absolute; top: -8px; left: -8px; background: #d81b60; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">×${toArabicNum(b.count)}</div>` : '';
 
+                        // معالجة الوصف ليقبل الأسطر المتعددة
+                        let formattedDesc = b.desc.replace(/\n/g, '<br>');
+
                         gridHTML += `
                             <div class="badge-sticker" style="position: relative;">
                                 ${countBadgeHTML}
                                 <div class="badge-sticker-icon">${b.icon}</div>
                                 <div class="badge-sticker-name">${b.name}</div>
-                                <div class="badge-sticker-desc">${b.desc}</div>
+                                <div class="badge-sticker-desc">${formattedDesc}</div>
                             </div>
                         `;
                     });
@@ -380,6 +383,66 @@
                 console.error(e);
                 container.innerHTML = `<div style="width: 100%; text-align: center; color: #d32f2f; font-size: 13px;">تعذر تحميل الأوسمة والملصقات التكريمية.</div>`;
             }
+        }
+
+        // دالة حساب الفترات الزمنية (أسبوعياً تبدأ كل أحد، شهرياً تبدأ أول الشهر)
+        function calculatePeriodicWins(records, studentName, studentClass, periodType) {
+            let periodsMap = {};
+
+            records.forEach(item => {
+                let d = item.created_at ? new Date(item.created_at) : new Date();
+                let periodKey = "";
+
+                if (periodType === 'week') {
+                    let day = d.getDay(); // الأحد
+                    let diff = d.getDate() - day;
+                    let sunday = new Date(d.setDate(diff));
+                    periodKey = sunday.toISOString().split('T')[0];
+                } else {
+                    periodKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+                }
+
+                if (!periodsMap[periodKey]) {
+                    periodsMap[periodKey] = [];
+                }
+                periodsMap[periodKey].push(item);
+            });
+
+            let sectionWins = 0;
+            let gradeWins = 0;
+            let schoolWins = 0;
+            let gradePrefix = studentClass.charAt(0);
+
+            Object.keys(periodsMap).forEach(period => {
+                let periodRecords = periodsMap[period];
+                let userScores = {};
+
+                periodRecords.forEach(r => {
+                    let key = r.student_name + '_' + (r.cls || 'غير مصنف');
+                    let pts = r.points || 0;
+                    if (!userScores[key] || pts > userScores[key].points) {
+                        userScores[key] = { name: r.student_name, cls: r.cls || 'غير مصنف', score: pts + 50 };
+                    }
+                });
+
+                let sortedPeriodArr = Object.values(userScores).sort((a, b) => b.score - a.score);
+
+                let secArr = sortedPeriodArr.filter(s => s.cls === studentClass);
+                if (secArr.length > 0 && secArr[0].name === studentName) {
+                    sectionWins++;
+                }
+
+                let gradeArr = sortedPeriodArr.filter(s => s.cls.startsWith(gradePrefix));
+                if (gradeArr.length > 0 && gradeArr[0].name === studentName) {
+                    gradeWins++;
+                }
+
+                if (sortedPeriodArr.length > 0 && sortedPeriodArr[0].name === studentName) {
+                    schoolWins++;
+                }
+            });
+
+            return { sectionCount: sectionWins, gradeCount: gradeWins, schoolCount: schoolWins };
         }
 
         async function calculateStudentRanks(currentName, currentClass) {
