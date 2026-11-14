@@ -98,6 +98,7 @@
 
         .report-preview-area { background: white; padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px solid #e2e8f0; }
         
+        /* تصميم صفحة التقرير المستقلة لكل شعبة */
         .report-single-page { 
             box-sizing: border-box;
             background: #ffffff;
@@ -110,6 +111,10 @@
             page-break-inside: avoid;
             break-inside: avoid;
             width: 100%;
+            min-height: 95vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
 
         .report-single-page:last-of-type {
@@ -145,9 +150,7 @@
             border: 1px solid #fbcfe8;
         }
 
-        .table-container {
-            margin-bottom: 8px;
-        }
+        .table-container { margin-bottom: 8px; flex: 1; }
 
         .report-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
         .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 2.5px 3px; text-align: center; line-height: 1.15; }
@@ -169,10 +172,11 @@
         .hidden { display: none !important; }
         footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
 
+        /* إعدادات الطباعة وتصدير PDF */
         @media print {
-            @page { size: A4 portrait; margin: 5mm; }
+            @page { size: A4 portrait; margin: 8mm; }
             body { background: white; padding: 0; margin: 0; }
-            header, .section-card:not(#reportOutputCard), .btn-row, .nav-tabs, footer.author-footer, #reportHeaderTitleCard { display: none !important; }
+            header, .section-card:not(#reportOutputCard), .btn-row, .nav-tabs, footer.author-footer, #reportHeaderTitleCard, #admin-nav-container { display: none !important; }
             .report-preview-area { box-shadow: none; padding: 0; margin: 0; border: none; }
             .report-single-page { 
                 margin: 0 !important;
@@ -181,7 +185,7 @@
                 break-inside: avoid;
                 page-break-after: always;
                 break-after: page;
-                min-height: 96vh;
+                min-height: 100vh;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
@@ -640,8 +644,6 @@
                 processScores(mountain.data);
                 processScores(snake.data);
 
-                // حساب أوسمة التفعيل لكل طالب عبر تجميع تكرارات الحصول على المراكز الأولى أو النشاط الفعّال دون تحديد النطاق التاريخي الصارم
-                // (حيث نجمع السجلات المتشابهة للأسبوع والشهر عبر الألعاب المختلفة بناءً على معايير الفرسان النشطين)
                 let now = new Date();
                 let currentMonth = now.getMonth();
                 let currentYear = now.getFullYear();
@@ -667,7 +669,6 @@
                                 monthlyCount++;
                             }
                         } else {
-                            // إن لم يوجد تاريخ مسجل، نحتسبه ضمن التراكمي العام للشهر والنشاط
                             monthlyCount++;
                         }
                     });
