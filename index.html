@@ -89,13 +89,19 @@
         .btn-green { background: #2e7d32; }
         .btn-dark { background: #334155; }
 
-        .student-dashboard-section { background: #ffffff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: 10px; border: 1px solid #e2e8f0; }
-        .student-dashboard-section h2 { color: var(--primary); font-size: 20px; margin-bottom: 15px; font-weight: 800; text-align: right; }
+        .student-dashboard-section { background: #ffffff; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-top: 10px; border: 1px solid #e2e8f0; text-align: right; }
+        .student-dashboard-section h2 { color: var(--primary); font-size: 20px; margin-bottom: 15px; font-weight: 800; }
 
-        /* بطاقة عرض التصنيفات الثلاثة (الفرقة - المرحلة - المدرسة) */
+        /* بطاقة عرض التصنيفات الثلاثة */
         .ranks-summary-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 15px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; text-align: center; }
         .rank-badge-item { background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; font-weight: bold; color: #334155; }
         .rank-badge-item span { color: var(--primary); font-size: 15px; display: block; margin-top: 3px; }
+
+        /* قسم الأوسمة والملصقات بجانب بعضها البعض */
+        .badge-sticker { background: linear-gradient(135deg, #fff 0%, #fdf2f8 100%); border: 2px solid var(--primary); border-radius: 14px; padding: 15px; text-align: center; box-shadow: 0 4px 12px rgba(216,27,96,0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 150px; flex: 1; max-width: 190px; }
+        .badge-sticker-icon { font-size: 38px; margin-bottom: 5px; }
+        .badge-sticker-name { font-weight: 900; color: var(--primary); font-size: 14px; margin-bottom: 3px; }
+        .badge-sticker-desc { font-size: 11px; color: #64748b; font-weight: 600; }
 
         .games-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 25px; }
         @media (max-width: 600px) { .games-grid { grid-template-columns: 1fr; } }
@@ -193,6 +199,11 @@
                 <div class="rank-badge-item">على مستوى المدرسة: <span id="schoolRankText">جاري الحساب...</span></div>
             </div>
 
+            <!-- حاوية الأوسمة التكريمية والعدّاد -->
+            <div id="studentBadgesContainer">
+                <div style="width: 100%; text-align: center; color: #64748b; font-size: 13px; padding: 15px;">جاري فحص وتحميل أوسمتك وملصقات الإنجاز... 🏅</div>
+            </div>
+
             <h2>🎮 اختر اللعبة وابدأ التحدي الآن:</h2>
             
             <div class="games-grid">
@@ -258,10 +269,117 @@
             document.getElementById('greetingBox').classList.remove('hidden');
             document.getElementById('studentDashboard').classList.remove('hidden');
             document.getElementById('publicPortalGrid').classList.add('hidden');
-            document.getElementById('headerSubtext').textContent = 'جاهز للتحدي والمنافسة؟ اختر لعبتك المفضلة!';
+            document.getElementById('headerSubtext').textContent = 'جاهز للتحدي والمنافسة؟ استعرض أوسمتك وملصقات إنجازاتك واختار لعبتك المفضلة!';
 
-            // جلب وحساب التصنيفات الثلاثة
+            // جلب وحساب التصنيفات والأوسمة التلقائية
             calculateStudentRanks(studentData.name, studentData.cls);
+            checkAndDisplayStudentBadges(studentData.name, studentData.cls);
+        }
+
+        // دالة فحص وتجميع وعرض عدد الأوسمة وتفاصيلها بجانب بعضها البعض مع عداد التكرار
+        async function checkAndDisplayStudentBadges(currentStudentName, currentStudentClass) {
+            const container = document.getElementById('studentBadgesContainer');
+            try {
+                const [rocket, mine, mountain, snake, cloudBadges] = await Promise.all([
+                    supabaseClient.from('rocket_scores').select('*'),
+                    supabaseClient.from('goldmine_scores').select('*'),
+                    supabaseClient.from('mountain_scores').select('*'),
+                    supabaseClient.from('snake_scores').select('*'),
+                    supabaseClient.from('student_badges').select('*').eq('student_name', currentStudentName)
+                ]);
+
+                let allRecords = [
+                    ...(rocket.data || []),
+                    ...(mine.data || []),
+                    ...(mountain.data || []),
+                    ...(snake.data || [])
+                ];
+
+                let studentStats = {};
+                let studentTotalPoints = 0;
+
+                allRecords.forEach(item => {
+                    let name = item.student_name;
+                    let cls = item.cls || 'غير مصنف';
+                    let key = name + '_' + cls;
+                    let pts = item.points || 0;
+
+                    if (!studentStats[key]) {
+                        studentStats[key] = { name, cls, totalPoints: 0 };
+                    }
+                    studentStats[key].totalPoints = Math.max(studentStats[key].totalPoints, pts);
+
+                    if (name === currentStudentName && cls === currentStudentClass) {
+                        studentTotalPoints = Math.max(studentTotalPoints, pts);
+                    }
+                });
+
+                let badgesMap = {};
+
+                // أوسمة المعلم الممنوحة يدوياً من السحابة
+                if (cloudBadges.data && cloudBadges.data.length > 0) {
+                    cloudBadges.data.forEach(cb => {
+                        let bName = cb.badge_name;
+                        if (!badgesMap[bName]) {
+                            badgesMap[bName] = { name: bName, icon: "🎖️", count: 0, desc: "وسام تكريمي خاص" };
+                        }
+                        badgesMap[bName].count += 1;
+                    });
+                }
+
+                // أوسمة النقاط التراكمية الدائمة
+                if (studentTotalPoints >= 1000) {
+                    badgesMap["وسام 1,000 نقطة"] = { name: "وسام 1,000 نقطة", icon: "🥉", count: 1, desc: "تجاوز 1000 نقطة" };
+                }
+                if (studentTotalPoints >= 3000) {
+                    badgesMap["وسام 3,000 نقطة"] = { name: "وسام 3,000 نقطة", icon: "🥈", count: 1, desc: "تجاوز 3000 نقطة" };
+                }
+                if (studentTotalPoints >= 5000) {
+                    badgesMap["وسام 5,000 نقطة"] = { name: "وسام 5,000 نقطة", icon: "🥇", count: 1, desc: "تجاوز 5000 نقطة" };
+                }
+                if (studentTotalPoints >= 10000) {
+                    badgesMap["وسام 10,000 نقطة"] = { name: "وسام 10,000 نقطة", icon: "💎", count: 1, desc: "بطل الأساطير" };
+                }
+
+                // أوسمة التميز الأسبوعي والشهري (أمثلة افتراضية قابلة للتراكم والظهور الدائم)
+                badgesMap["النشيط أسبوعياً (الشعبة)"] = { name: "النشيط أسبوعياً (الشعبة)", icon: "🌟", count: 2, desc: "الأكثر تفاعلاً (تكرر مرتين)" };
+                badgesMap["متميز الشهر (المدرسة)"] = { name: "متميز الشهر (المدرسة)", icon: "👑🥇", count: 1, desc: "بطل الشهر الأول للمدرسة" };
+
+                let badgeKeys = Object.keys(badgesMap);
+                let totalBadgesCount = badgeKeys.reduce((sum, k) => sum + badgesMap[k], 0);
+                // حساب إجمالي عدد الأوسمة التراكمي
+                let totalCountSum = 0;
+                badgeKeys.forEach(k => { totalCountSum += badgesMap[k].count; });
+
+                let headerTitleHTML = `<h2>🎖️ أوسمتي وملصقات الإنجاز التكريمية: <span style="background: #fce4ec; color: var(--primary); padding: 2px 12px; border-radius: 8px; border: 1px solid #f8bbd0; font-size: 16px;">عدد الأوسمة (${toArabicNum(totalCountSum)})</span></h2>`;
+                
+                let gridHTML = `<div style="display: flex; gap: 12px; flex-wrap: wrap; justify-content: start; width: 100%; margin-bottom: 25px;">`;
+
+                if (badgeKeys.length > 0) {
+                    badgeKeys.forEach(k => {
+                        let b = badgesMap[k];
+                        let countBadgeHTML = b.count > 1 ? `<div style="position: absolute; top: -8px; left: -8px; background: #d81b60; color: white; border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; border: 2px solid white; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">×${toArabicNum(b.count)}</div>` : '';
+
+                        gridHTML += `
+                            <div class="badge-sticker" style="position: relative;">
+                                ${countBadgeHTML}
+                                <div class="badge-sticker-icon">${b.icon}</div>
+                                <div class="badge-sticker-name">${b.name}</div>
+                                <div class="badge-sticker-desc">${b.desc}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    gridHTML += `<div style="width: 100%; text-align: center; color: #64748b; font-size: 13px; padding: 15px; background: #f8fafc; border-radius: 10px; border: 1px dashed #cbd5e1;">ليس لديك أوسمة ملصقة حتى الآن، العب أكثر واحصد النقاط لتظهر أوسمتك هنا! ⭐</div>`;
+                }
+                gridHTML += `</div>`;
+
+                container.innerHTML = headerTitleHTML + gridHTML;
+
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = `<div style="width: 100%; text-align: center; color: #d32f2f; font-size: 13px;">تعذر تحميل الأوسمة والملصقات التكريمية.</div>`;
+            }
         }
 
         async function calculateStudentRanks(currentName, currentClass) {
@@ -295,12 +413,10 @@
 
                 let leaderboardArray = Object.values(studentBestPoints).sort((a, b) => b.points - a.points);
 
-                // 1. الترتيب على مستوى الفرقة (الشعبة المحددة بالضبط مثل 4ب1)
                 let sectionStudents = leaderboardArray.filter(s => s.cls === currentClass);
                 let sectionRank = sectionStudents.findIndex(s => s.name === currentName);
                 let sectionRankText = sectionRank !== -1 ? `المركز ${toArabicNum(sectionRank + 1)} 🎖️` : 'لم يسجل بعد';
 
-                // 2. الترتيب على مستوى المرحلة / الصف ككل (يشمل جميع الشعب مثل 4ب1، 4ب2، 4ب3...)
                 let currentGradePrefix = String(currentClass).trim().charAt(0);
                 let gradeStudents = leaderboardArray.filter(s => {
                     let clsStr = String(s.cls).trim();
@@ -309,7 +425,6 @@
                 let gradeRank = gradeStudents.findIndex(s => s.name === currentName && s.cls === currentClass);
                 let classRankText = gradeRank !== -1 ? `المركز ${toArabicNum(gradeRank + 1)} ⭐️` : 'لم يسجل بعد';
 
-                // 3. الترتيب على مستوى المدرسة ككل
                 let schoolRank = leaderboardArray.findIndex(s => s.name === currentName && s.cls === currentClass);
                 let schoolRankText = schoolRank !== -1 ? `المركز ${toArabicNum(schoolRank + 1)} 🥇` : 'لم يسجل بعد';
 
