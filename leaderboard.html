@@ -277,7 +277,7 @@
                 let allCombined = [...rocketList, ...mineList, ...mountainList, ...snakeList];
                 let combinedBest = {};
                 allCombined.forEach(item => {
-                    if ((item.points || 0) <= 0) return; // استبعاد أصحاب النقاط صفر
+                    if ((item.points || 0) <= 0) return;
                     let key = item.student_name + '_' + item.cls;
                     if (!combinedBest[key] || item.points > combinedBest[key].points) combinedBest[key] = item;
                 });
@@ -302,19 +302,17 @@
 
             allRecords.forEach(item => {
                 let pts = item.points || 0;
-                if (pts <= 0) return; // استبعاد الصفر تماماً
+                if (pts <= 0) return;
 
                 let d = item.created_at ? new Date(item.created_at) : new Date();
                 let key = item.student_name + '_' + item.cls;
 
-                // تصفية الأسبوع الفائت حصرياً (آخر 7 أيام)
                 if (d >= oneWeekAgo) {
                     if (!weeklyMap[key]) weeklyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
                     weeklyMap[key].totalPoints = Math.max(weeklyMap[key].totalPoints, pts);
                     weeklyMap[key].count += 1;
                 }
 
-                // تصفية الشهري
                 if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
                     if (!monthlyMap[key]) monthlyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
                     monthlyMap[key].totalPoints = Math.max(monthlyMap[key].totalPoints, pts);
@@ -322,7 +320,6 @@
                 }
             });
 
-            // تطبيق الوزن الخاص للترتيب (النقاط مضروبة في عدد المرات + النقاط) مع الحفاظ على عرض النقاط والمرات الحقيقية فقط
             let evaluateAndSort = (mapObj) => {
                 return Object.values(mapObj).map(u => ({
                     student_name: u.student_name,
@@ -363,7 +360,7 @@
 
             ['4', '5', '6'].forEach(key => {
                 let group = gradeGroups[key];
-                let studentsArr = group.students; // تم فرزها مسبقاً بناءً على customScore
+                let studentsArr = group.students;
 
                 let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
                 if (studentsArr.length === 0) {
@@ -387,7 +384,7 @@
             let bestMap = {};
             list.forEach(item => {
                 let pts = item.points || 0;
-                if (pts <= 0) return; // استبعاد أصحاب النقاط صفر
+                if (pts <= 0) return;
                 let key = item.student_name + '_' + item.cls;
                 if (!bestMap[key] || pts > bestMap[key].points) bestMap[key] = item;
             });
@@ -412,4 +409,34 @@
             for (let i = 0; i < maxDisplayLimit; i++) {
                 let row = dataArr[i];
                 let rankText = rankNames[i] || (i + 1);
-                let topClass = i === 0 ? 'top-1' : i === 1 ? 'top-2' : i === 2 ? 'top
+                let topClass = i === 0 ? 'top-1' : i === 1 ? 'top-2' : i === 2 ? 'top-3' : '';
+
+                html += `
+                    <div class="rank-item ${topClass}">
+                        <span><b>${rankText}</b>: ${row.student_name} (${row.cls})</span>
+                        <span style="color: #2e7d32; font-weight: bold; font-size:11px;">${row.points} ن</span>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+
+            if (dataArr.length > 5) {
+                moreBtn.classList.remove('hidden');
+                moreBtn.textContent = showAllState[gameKey] ? 'إخفاء 👆' : 'المزيد 👇';
+            } else {
+                moreBtn.classList.add('hidden');
+            }
+        }
+
+        function toggleMore(gameKey) {
+            showAllState[gameKey] = !showAllState[gameKey];
+            renderListUI(gameKey, rawDataStore[gameKey]);
+        }
+
+        function capitalize(s) {
+            return s.charAt(0).toUpperCase() + s.slice(1);
+        }
+    </script>
+</body>
+</html>
