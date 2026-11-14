@@ -169,22 +169,32 @@
         .hidden { display: none !important; }
         footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
 
+        /* إعدادات الطباعة ومنع ظهور أي صفحة فارغة في البداية */
         @media print {
-            @page { size: A4 portrait; margin: 5mm; }
-            body { background: white; padding: 0; margin: 0; }
-            header, .section-card:not(#reportOutputCard), .btn-row, .nav-tabs, footer.author-footer, #reportHeaderTitleCard { display: none !important; }
-            .report-preview-area { box-shadow: none; padding: 0; margin: 0; border: none; }
+            @page { size: A4 portrait; margin: 0; }
+            html, body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; height: 100% !important; }
+            header, .section-card:not(#reportOutputCard), .btn-row, .nav-tabs, footer.author-footer, #reportHeaderTitleCard, #admin-nav-container, nav, div[style*="background"] { display: none !important; }
+            .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
+            .report-preview-area { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: white !important; }
             .report-single-page { 
                 margin: 0 !important;
-                border: none;
-                page-break-inside: avoid;
-                break-inside: avoid;
-                page-break-after: always;
-                break-after: page;
-                min-height: 96vh;
-                display: flex;
-                flex-direction: column;
-                justify-content: space-between;
+                border: none !important;
+                border-radius: 0 !important;
+                padding: 10mm 10mm !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                width: 100vw !important;
+                height: 100vh !important;
+                display: flex !important;
+                flex-direction: column !important;
+                justify-content: space-between !important;
+                background: white !important;
+            }
+            .report-single-page:first-of-type {
+                margin-top: 0 !important;
+                padding-top: 10mm !important;
             }
             .report-single-page:last-of-type {
                 page-break-after: avoid !important;
@@ -630,7 +640,7 @@
                         if (pts > 0) {
                             studentsMap[key].hasPlayed = true;
                             studentsMap[key].total += pts;
-                            studentsMap[key].playCount += 1; // حساب عدد مرات اللعب/التفعيل الإجمالي
+                            studentsMap[key].playCount += 1;
                             studentsMap[key].records.push({
                                 points: pts,
                                 created_at: item.created_at ? new Date(item.created_at) : null
