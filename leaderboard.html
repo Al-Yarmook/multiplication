@@ -44,7 +44,7 @@
         header:hover { background: #fff0f5; }
         header h1 { color: var(--primary); font-size: 22px; font-weight: 900; }
 
-        .container { max-width: 1100px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
+        .container { max-width: 1200px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
         
         .board-card { 
             background: white; 
@@ -56,16 +56,16 @@
         
         .board-title { color: var(--primary); margin-bottom: 15px; text-align: center; font-size: 20px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
-        .rank-list { display: flex; flex-direction: column; gap: 8px; }
+        .rank-list { display: flex; flex-direction: column; gap: 6px; }
         .rank-item { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            padding: 10px 15px; 
+            padding: 8px 12px; 
             background: #f8fafc; 
-            border-radius: 10px; 
+            border-radius: 8px; 
             border: 1px solid #e2e8f0; 
-            font-size: 14px; 
+            font-size: 13px; 
             transition: 0.2s; 
         }
         .rank-item:hover { background: #fdf2f8; border-color: #fbcfe8; transform: scale(1.01); }
@@ -88,20 +88,20 @@
         }
         .more-btn:hover { background: var(--primary); color: white; border-style: solid; }
 
-        /* شبكة أفقية لجداول الأكثر تفاعلاً حسب الصفوف */
+        /* شبكة أفقية مصغرة لعرض الصفوف بجانب بعضها البعض بحجم أصغر */
         .active-grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
-            gap: 15px; 
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
+            gap: 12px; 
         }
         .mini-board { 
             background: #ffffff; 
             border: 2px solid #cbd5e1; 
             border-radius: 12px; 
-            padding: 15px; 
-            box-shadow: 0 2px 10px rgba(0,0,0,0.03); 
+            padding: 12px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03); 
         }
-        .mini-board h3 { color: #1565c0; font-size: 15px; margin-bottom: 10px; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; }
+        .mini-board h3 { color: #1565c0; font-size: 14px; margin-bottom: 8px; text-align: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; }
 
         /* بطاقات الأبطال على مستوى المدرسة */
         .school-champions-grid {
@@ -167,7 +167,7 @@
             </div>
         </div>
 
-        <!-- فرسان التفعيل الأسبوعي حسب المرحلة (الصف الرابع بجانب الخامس والسادس) -->
+        <!-- فرسان التفعيل الأسبوعي (فصل الرابع، الخامس، والسادس في صف واحد بحجم أصغر) -->
         <div class="board-card">
             <div class="board-title">⚡ فرسان التفعيل الأسبوعي (حسب الصفوف)</div>
             <div class="active-grid" id="weeklyActiveGridsContainer">
@@ -175,7 +175,7 @@
             </div>
         </div>
 
-        <!-- فرسان التفعيل الشهري حسب المرحلة (بنفس طريقة العرض) -->
+        <!-- فرسان التفعيل الشهري (فصل الرابع، الخامس، والسادس في صف واحد بحجم أصغر) -->
         <div class="board-card">
             <div class="board-title">🌙 فرسان التفعيل الشهري (حسب الصفوف)</div>
             <div class="active-grid" id="monthlyActiveGridsContainer">
@@ -283,10 +283,7 @@
                 rawDataStore.combined = combinedArr;
                 renderListUI('combined', combinedArr);
 
-                // معالجة الأكثر تفاعلاً (تراكمي عام)
-                processActiveGrids(allCombined, 'activeGridsContainer', false);
-
-                // معالجة فرسان التفعيل الأسبوعي والشهري حسب الفترات الزمنية
+                processActiveGrids(allCombined, 'activeGridsContainer');
                 processPeriodicActivation(allCombined);
 
             } catch (err) { console.error("Error loading leaderboards:", err); }
@@ -305,14 +302,12 @@
                 let d = item.created_at ? new Date(item.created_at) : new Date();
                 let key = item.student_name + '_' + item.cls;
 
-                // تصفية الأسبوعي (آخر 7 أيام)
                 if (d >= oneWeekAgo) {
                     if (!weeklyMap[key]) weeklyMap[key] = { student_name: item.student_name, cls: item.cls, points: 0, count: 0 };
                     weeklyMap[key].points += item.points || 0;
                     weeklyMap[key].count += 1;
                 }
 
-                // تصفية الشهري (الشهر الميلادي الحالي)
                 if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
                     if (!monthlyMap[key]) monthlyMap[key] = { student_name: item.student_name, cls: item.cls, points: 0, count: 0 };
                     monthlyMap[key].points += item.points || 0;
@@ -323,49 +318,46 @@
             let weeklyArr = Object.values(weeklyMap).sort((a, b) => b.points - a.points || b.count - a.count);
             let monthlyArr = Object.values(monthlyMap).sort((a, b) => b.points - a.points || b.count - a.count);
 
-            // أبطال المدرسة
             document.getElementById('schoolWeeklyChamp').textContent = weeklyArr.length > 0 ? `${weeklyArr[0].student_name} (${weeklyArr[0].cls})` : 'لا توجد بيانات هذا الأسبوع';
             document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
 
-            // عرض فرسان الأسبوع (الصف الرابع وبجانبه الخامس والسادس)
+            // فصل الرابع والخامس والسادس (بشكل منفصل وبحجم أصغر في صف واحد)
             renderGradeActivationGrids(weeklyArr, 'weeklyActiveGridsContainer');
-            // عرض فرسان الشهر
             renderGradeActivationGrids(monthlyArr, 'monthlyActiveGridsContainer');
         }
 
         function renderGradeActivationGrids(dataArr, containerId) {
             let gradeGroups = { 
                 '4': { title: '⭐️ الصف الرابع', students: [] }, 
-                '5_6': { title: '⭐️ الصفان الخامس والسادس', students: [] } 
+                '5': { title: '⭐️ الصف الخامس', students: [] },
+                '6': { title: '⭐️ الصف السادس', students: [] } 
             };
 
             dataArr.forEach(item => {
                 let clsStr = String(item.cls).trim();
                 let prefix = clsStr.charAt(0);
-                if (prefix === '4') {
-                    gradeGroups['4'].students.push(item);
-                } else if (prefix === '5' || prefix === '6') {
-                    gradeGroups['5_6'].students.push(item);
+                if (gradeGroups[prefix]) {
+                    gradeGroups[prefix].students.push(item);
                 }
             });
 
             const container = document.getElementById(containerId);
             container.innerHTML = '';
 
-            ['4', '5_6'].forEach(key => {
+            ['4', '5', '6'].forEach(key => {
                 let group = gradeGroups[key];
                 let studentsArr = group.students.sort((a, b) => b.points - a.points || b.count - a.count);
 
                 let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
                 if (studentsArr.length === 0) {
-                    miniHTML += `<div style="text-align:center; color:#666; padding:10px; font-size:13px;">لا توجد نشاطات مسجلة</div>`;
+                    miniHTML += `<div style="text-align:center; color:#666; padding:8px; font-size:12px;">لا توجد نشاطات مسجلة</div>`;
                 } else {
                     studentsArr.slice(0, 5).forEach((st, idx) => {
                         let rankStr = rankNames[idx] || `المركز ${idx + 1}`;
                         miniHTML += `
                             <div class="rank-item">
                                 <span><b>${rankStr}</b>: ${st.student_name} (${st.cls})</span>
-                                <span style="color:var(--primary); font-weight:bold; font-size:12px;">${st.points} نقطة | ${st.count} مرات</span>
+                                <span style="color:var(--primary); font-weight:bold; font-size:11px;">${st.points} نقطة | ${st.count} مرات</span>
                             </div>`;
                     });
                 }
@@ -374,7 +366,7 @@
             });
         }
 
-        function processActiveGrids(allCombined, containerId, isPeriodic) {
+        function processActiveGrids(allCombined, containerId) {
             let gradeGroups = { '3': { title: '⭐️ الصف الثالث', students: {} }, '4': { title: '⭐️ الصف الرابع', students: {} }, '5': { title: '⭐️ الصف الخامس', students: {} }, '6': { title: '⭐️ الصف السادس', students: {} }, 'other': { title: '⭐️ صفوف أخرى', students: {} } };
             allCombined.forEach(item => {
                 let clsStr = String(item.cls).trim();
@@ -394,7 +386,7 @@
                 let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
                 studentsArr.slice(0, 5).forEach((st, idx) => {
                     let rankStr = rankNames[idx] || (idx + 1);
-                    miniHTML += `<div class="rank-item"><span><b>${rankStr}</b> - ${st.student_name} (${st.cls})</span><span style="color:var(--primary); font-weight:bold;">${st.count} مرات</span></div>`;
+                    miniHTML += `<div class="rank-item"><span><b>${rankStr}</b> - ${st.student_name} (${st.cls})</span><span style="color:var(--primary); font-weight:bold; font-size:11px;">${st.count} مرات</span></div>`;
                 });
                 miniHTML += `</div></div>`;
                 activeContainer.innerHTML += miniHTML;
