@@ -293,7 +293,17 @@
 
         function processPeriodicActivation(allRecords) {
             let now = new Date();
-            let oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            
+            // حساب نطاق الأسبوع الحالي ديناميكياً (من الأحد إلى السبت) ليتحدث تلقائياً كل أسبوع
+            let currentDayOfWeek = now.getDay();
+            let startOfWeek = new Date(now);
+            startOfWeek.setDate(now.getDate() - currentDayOfWeek);
+            startOfWeek.setHours(0, 0, 0, 0);
+
+            let endOfWeek = new Date(startOfWeek);
+            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setHours(23, 59, 59, 999);
+
             let currentMonth = now.getMonth();
             let currentYear = now.getFullYear();
 
@@ -307,12 +317,14 @@
                 let d = item.created_at ? new Date(item.created_at) : new Date();
                 let key = item.student_name + '_' + item.cls;
 
-                if (d >= oneWeekAgo) {
+                // 1. تصفية أسبوعية ديناميكية للأسبوع الجاري حصرياً
+                if (d >= startOfWeek && d <= endOfWeek) {
                     if (!weeklyMap[key]) weeklyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
                     weeklyMap[key].totalPoints = Math.max(weeklyMap[key].totalPoints, pts);
                     weeklyMap[key].count += 1;
                 }
 
+                // 2. تصفية شهرية للشهر الحالي
                 if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
                     if (!monthlyMap[key]) monthlyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
                     monthlyMap[key].totalPoints = Math.max(monthlyMap[key].totalPoints, pts);
@@ -333,7 +345,7 @@
             let weeklyArr = evaluateAndSort(weeklyMap);
             let monthlyArr = evaluateAndSort(monthlyMap);
 
-            document.getElementById('schoolWeeklyChamp').textContent = weeklyArr.length > 0 ? `${weeklyArr[0].student_name} (${weeklyArr[0].cls})` : 'لا توجد بيانات هذا الأسبوع';
+            document.getElementById('schoolWeeklyChamp').textContent = weeklyArr.length > 0 ? `${weeklyArr[0].student_name} (${weeklyArr[0].cls})` : 'لا توجد بيانات لهذا الأسبوع';
             document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
 
             renderGradeActivationGrids(weeklyArr, 'weeklyActiveGridsContainer');
@@ -364,7 +376,7 @@
 
                 let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
                 if (studentsArr.length === 0) {
-                    miniHTML += `<div style="text-align:center; color:#666; padding:6px; font-size:11px;">لا توجد نشاطات مسجلة هذا الأسبوع</div>`;
+                    miniHTML += `<div style="text-align:center; color:#666; padding:6px; font-size:11px;">لا توجد نشاطات مسجلة لهذا الأسبوع</div>`;
                 } else {
                     studentsArr.slice(0, 5).forEach((st, idx) => {
                         let rankStr = rankNames[idx] || `المركز ${idx + 1}`;
