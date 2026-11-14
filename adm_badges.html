@@ -3,108 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إعدادات الأوسمة - لوحة المدير</title>
+    <title>إدارة ومنح الأوسمة - فرسان جدول الضرب</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #d81b60; --bg: #f4f7f6; --text: #1e293b; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 5px solid var(--primary); }
-        h1 { color: var(--primary); font-size: 20px; margin-bottom: 15px; text-align: center; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
-        th, td { padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: center; }
-        th { background: #f8fafc; color: var(--primary); }
-        input[type="number"], input[type="text"] { width: 100px; padding: 5px; text-align: center; border: 1px solid #cbd5e1; border-radius: 4px; font-family: 'Cairo'; }
-        .btn { background: var(--primary); color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-weight: bold; font-family: 'Cairo'; }
-        .btn:hover { opacity: 0.9; }
-        .top-toast { position: fixed; top: 15px; left: 50%; transform: translateX(-50%) translateY(-50px); background: #1e293b; color: white; padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: bold; z-index: 300; opacity: 0; transition: 0.3s; }
-        .top-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        :root {
+            --primary: #d81b60;
+            --primary-hover: #ad1457;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-top: 4px solid var(--primary); }
+        h1 { color: var(--primary); margin: 0; font-size: 24px; font-weight: 900; }
+        .section-card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
+        .form-group { flex: 1; min-width: 250px; text-align: right; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
+        select, input { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Cairo'; }
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Cairo'; transition: 0.3s; display: inline-block; }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-red { background: #d32f2f; }
+        .btn-red:hover { background: #b71c1c; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-size: 13px; }
+        th { background: var(--primary); color: white; }
+        footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="top-toast" id="topToast">تم الحفظ بنجاح</div>
-
     <div class="container">
-        <!-- شريط التنقل العلوي الموحد -->
+        <header>
+            <h1 id="welcomeTitle">إدارة ومنح الأوسمة للطلاب</h1>
+            <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
+        </header>
+
+        <!-- القائمة الموحدة -->
         <div id="admin-nav-container"></div>
 
-        <h1>⚙️ إعدادات نقاط وشروط الأوسمة</h1>
-        <p style="font-size: 12px; color: #64748b; text-align: center; margin-bottom: 15px;">من هنا يمكنك التحكم بالنقاط المطلوبة لكل وسام تدريجي يظهر للطلاب.</p>
+        <div class="section-card">
+            <h2>🏅 منح وسام جديد للطالب</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>اختر الطالب:</label>
+                    <select id="studentSelect">
+                        <option value="">جاري تحميل الطلاب...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>اختر الوسام التكريمي (من جدول السحابة):</label>
+                    <select id="badgeSelect">
+                        <option value="">جاري تحميل الأوسمة...</option>
+                    </select>
+                </div>
+                <div class="form-group" style="align-self: flex-end;">
+                    <button class="btn" onclick="awardBadgeToStudent()">منح الوسام الآن 🎖️</button>
+                </div>
+            </div>
+        </div>
 
-        <table id="badgesTable">
-            <thead>
-                <tr>
-                    <th>مفتاح الوسام</th>
-                    <th>اسم الوسام</th>
-                    <th>النقاط المطلوبة</th>
-                    <th>الإجراء</th>
-                </tr>
-            </thead>
-            <tbody id="badgesBody">
-                <tr><td colspan="4">جاري التحميل...</td></tr>
-            </tbody>
-        </table>
+        <div class="section-card">
+            <h2>📋 سجل الأوسمة الممنوحة للطلاب</h2>
+            <table id="awardedBadgesTable">
+                <thead>
+                    <tr>
+                        <th>اسم الطالب</th>
+                        <th>الصف / الفرقة</th>
+                        <th>الوسام الممنوح</th>
+                        <th>تاريخ التكريم</th>
+                        <th>الإجراء</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="5" style="text-align:center;">جاري جلب الأوسمة الممنوحة...</td></tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
-    <!-- استدعاء القائمة العلوية الموحدة -->
+    <footer class="author-footer">
+        إعداد أ. صادق القلعاوي | مدرسة اليرموك الابتدائية للبنين 🏫✨
+    </footer>
+
     <script src="navbar.js"></script>
-
     <script>
-        function showTopToast(msg) {
-            const t = document.getElementById('topToast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 1500);
-        }
+        let currentUser = JSON.parse(localStorage.getItem('current_staff_user') || '{}');
+        if(!currentUser.name) { window.location.href = 'staff.html'; }
 
-        async function fetchBadgesSettings() {
-            try {
-                const { data, error } = await supabaseClient.from('badge_settings').select('*').order('required_points', { ascending: true });
-                if (error) throw error;
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadStudentsDropdown();
+            await loadBadgesDropdown();
+            await loadAwardedBadges();
+        });
 
-                const tbody = document.getElementById('badgesBody');
-                tbody.innerHTML = '';
-                if (data && data.length > 0) {
-                    data.forEach(b => {
-                        let tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td><code>${b.badge_key}</code></td>
-                            <td><b>${b.badge_name}</b></td>
-                            <td><input type="number" id="pts_${b.badge_key}" value="${b.required_points}"></td>
-                            <td><button class="btn" onclick="updateBadge('${b.badge_key}')">حفظ التعديل</button></td>
-                        `;
-                        tbody.appendChild(tr);
-                    });
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4">لا توجد إعدادات مسجلة</td></tr>';
-                }
-            } catch (e) {
-                console.error(e);
-                document.getElementById('badgesBody').innerHTML = '<tr><td colspan="4" style="color:red;">خطأ في الاتصال بالسحابة</td></tr>';
+        // جلب قائمة الطلاب
+        async function loadStudentsDropdown() {
+            const { data, error } = await supabaseClient.from('students').select('name, cls').order('cls');
+            const selectEl = document.getElementById('studentSelect');
+            selectEl.innerHTML = '<option value="">-- اختر الطالب --</option>';
+            if(data && data.length > 0) {
+                data.forEach(s => {
+                    selectEl.innerHTML += `<option value="${s.name}|${s.cls}">${s.name} (الصف: ${s.cls})</option>`;
+                });
             }
         }
 
-        async function updateBadge(key) {
-            let val = parseInt(document.getElementById(`pts_${key}`).value);
-            if (isNaN(val)) { alert('يرجى إدخال رقم صحيح'); return; }
-
-            try {
-                const { error } = await supabaseClient
-                    .from('badge_settings')
-                    .update({ required_points: val })
-                    .eq('badge_key', key);
-
-                if (error) throw error;
-                showTopToast('✅ تم تحديث إعدادات الوسام بنجاح!');
-            } catch (e) {
-                alert('خطأ أثناء الحفظ: ' + e.message);
+        // جلب الأوسمة مباشرة من جدول badge_settings في السحابة
+        async function loadBadgesDropdown() {
+            const { data, error } = await supabaseClient.from('badge_settings').select('*').eq('is_active', true);
+            const selectEl = document.getElementById('badgeSelect');
+            selectEl.innerHTML = '<option value="">-- اختر الوسام --</option>';
+            if(data && data.length > 0) {
+                data.forEach(b => {
+                    selectEl.innerHTML += `<option value="${b.badge_name}">${b.badge_name} (النقاط المطلوبة: ${b.required_points})</option>`;
+                });
+            } else {
+                selectEl.innerHTML = '<option value="">لا توجد أوسمة نشطة</option>';
             }
         }
 
-        fetchBadgesSettings();
+        // منح الوسام وحفظه في جدول student_badges
+        async function awardBadgeToStudent() {
+            const studentVal = document.getElementById('studentSelect').value;
+            const badgeName = document.getElementById('badgeSelect').value;
+
+            if(!studentVal || !badgeName) {
+                alert('الرجاء اختيار الطالب والوسام معاً!');
+                return;
+            }
+
+            const [studentName, cls] = studentVal.split('|');
+
+            const { error } = await supabaseClient.from('student_badges').insert([{
+                student_name: studentName,
+                cls: cls,
+                badge_name: badgeName
+            }]);
+
+            if(error) {
+                alert('حدث خطأ أثناء منح الوسام: ' + error.message);
+            } else {
+                alert(`✅ تم منح الوسام (${badgeName}) للطالب ${studentName} بنجاح!`);
+                loadAwardedBadges();
+            }
+        }
+
+        // جلب سجل الأوسمة الممنوحة للطلاب
+        async function loadAwardedBadges() {
+            const { data, error } = await supabaseClient.from('student_badges').select('*').order('id', { ascending: false });
+            const tbody = document.querySelector('#awardedBadgesTable tbody');
+            tbody.innerHTML = '';
+
+            if(data && data.length > 0) {
+                data.forEach(item => {
+                    let dateStr = item.awarded_at ? new Date(item.awarded_at).toLocaleDateString('ar-BH') : '-';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><b>${item.student_name}</b></td>
+                            <td>${item.cls}</td>
+                            <td><span style="background: #fdf2f8; color: var(--primary); padding: 4px 10px; border-radius: 6px; font-weight: bold; border: 1px solid #fbcfe8;">${item.badge_name}</span></td>
+                            <td>${dateStr}</td>
+                            <td><button class="btn btn-red" style="padding: 4px 10px; font-size: 11px;" onclick="deleteBadge(${item.id})">سحب الوسام 🗑️</button></td>
+                        </tr>
+                    `;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#666;">لا توجد أوسمة ممنوحة حتى الآن.</td></tr>`;
+            }
+        }
+
+        // سحب / حذف الوسام
+        async function deleteBadge(id) {
+            if(!confirm('هل أنت متأكد من سحب هذا الوسام؟')) return;
+            const { error } = await supabaseClient.from('student_badges').delete().eq('id', id);
+            if(error) alert('خطأ أثناء الحذف.');
+            else {
+                alert('✅ تم سحب الوسام بنجاح.');
+                loadAwardedBadges();
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('current_staff_user');
+            window.location.href = 'staff.html';
+        }
     </script>
 </body>
 </html>
