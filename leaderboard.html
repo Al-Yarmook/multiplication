@@ -54,8 +54,9 @@
             border: 2px solid #e2e8f0; 
         }
         
-        .board-title { color: var(--primary); margin-bottom: 15px; text-align: center; font-size: 19px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        
+        .board-title { color: var(--primary); margin-bottom: 5px; text-align: center; font-size: 19px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .board-subtitle { text-align: center; font-size: 12px; color: #64748b; font-weight: bold; margin-bottom: 15px; }
+
         .rank-list { display: flex; flex-direction: column; gap: 5px; }
         .rank-item { 
             display: flex; 
@@ -173,17 +174,19 @@
             </div>
         </div>
 
-        <!-- فرسان التفعيل الأسبوعي (الرابع، الخامس، السادس) -->
+        <!-- فرسان التفعيل الأسبوعي (مع عرض الفترة من إلى تلقائياً) -->
         <div class="board-card">
             <div class="board-title">⚡ فرسان التفعيل الأسبوعي (حسب الصفوف)</div>
+            <div class="board-subtitle" id="weeklyPeriodSubtitle">جاري تحديد الفترة...</div>
             <div class="active-grid" id="weeklyActiveGridsContainer">
                 <p style="text-align: center; color: #666; grid-column: 1/-1;">جاري حساب النشاط الأسبوعي...</p>
             </div>
         </div>
 
-        <!-- فرسان التفعيل الشهري (الرابع، الخامس، السادس) -->
+        <!-- فرسان التفعيل الشهري (مع عرض اسم الشهر تلقائياً) -->
         <div class="board-card">
             <div class="board-title">🌙 فرسان التفعيل الشهري (حسب الصفوف)</div>
+            <div class="board-subtitle" id="monthlyPeriodSubtitle">جاري تحديد الشهر...</div>
             <div class="active-grid" id="monthlyActiveGridsContainer">
                 <p style="text-align: center; color: #666; grid-column: 1/-1;">جاري حساب النشاط الشهري...</p>
             </div>
@@ -294,7 +297,7 @@
         function processPeriodicActivation(allRecords) {
             let now = new Date();
             
-            // حساب نطاق الأسبوع الحالي ديناميكياً (من الأحد إلى السبت) ليتحدث تلقائياً كل أسبوع
+            // حساب نطاق الأسبوع الحالي ديناميكياً (من الأحد إلى السبت) وعرضه كتابةً
             let currentDayOfWeek = now.getDay();
             let startOfWeek = new Date(now);
             startOfWeek.setDate(now.getDate() - currentDayOfWeek);
@@ -304,8 +307,17 @@
             endOfWeek.setDate(startOfWeek.getDate() + 6);
             endOfWeek.setHours(23, 59, 59, 999);
 
-            let currentMonth = now.getMonth();
+            // تنسيق عرض التاريخ بالعربي (مثال: الفترة من 2026/11/08 إلى 2026/11/14)
+            let formatDate = (d) => `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
+            document.getElementById('weeklyPeriodSubtitle').textContent = `(الفترة من ${formatDate(startOfWeek)} إلى ${formatDate(endOfWeek)})`;
+
+            // عرض الشهر الحالي (مثال: نوفمبر)
+            const monthNamesArabic = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+            let currentMonthName = monthNamesArabic[now.getMonth()];
             let currentYear = now.getFullYear();
+            document.getElementById('monthlyPeriodSubtitle').textContent = `(شهر: ${currentMonthName} ${currentYear})`;
+
+            let currentMonth = now.getMonth();
 
             let weeklyMap = {};
             let monthlyMap = {};
@@ -346,7 +358,7 @@
             let monthlyArr = evaluateAndSort(monthlyMap);
 
             document.getElementById('schoolWeeklyChamp').textContent = weeklyArr.length > 0 ? `${weeklyArr[0].student_name} (${weeklyArr[0].cls})` : 'لا توجد بيانات لهذا الأسبوع';
-            document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
+            document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].name || monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
 
             renderGradeActivationGrids(weeklyArr, 'weeklyActiveGridsContainer');
             renderGradeActivationGrids(monthlyArr, 'monthlyActiveGridsContainer');
@@ -376,7 +388,7 @@
 
                 let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
                 if (studentsArr.length === 0) {
-                    miniHTML += `<div style="text-align:center; color:#666; padding:6px; font-size:11px;">لا توجد نشاطات مسجلة لهذا الأسبوع</div>`;
+                    miniHTML += `<div style="text-align:center; color:#666; padding:6px; font-size:11px;">لا توجد نشاطات مسجلة لهذه الفترة</div>`;
                 } else {
                     studentsArr.slice(0, 5).forEach((st, idx) => {
                         let rankStr = rankNames[idx] || `المركز ${idx + 1}`;
