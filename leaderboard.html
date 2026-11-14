@@ -44,31 +44,31 @@
         header:hover { background: #fff0f5; }
         header h1 { color: var(--primary); font-size: 22px; font-weight: 900; }
 
-        .container { max-width: 1200px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
+        .container { max-width: 1200px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
         
         .board-card { 
             background: white; 
             border-radius: 16px; 
-            padding: 22px; 
+            padding: 20px; 
             box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
             border: 2px solid #e2e8f0; 
         }
         
-        .board-title { color: var(--primary); margin-bottom: 15px; text-align: center; font-size: 20px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .board-title { color: var(--primary); margin-bottom: 15px; text-align: center; font-size: 19px; font-weight: 900; display: flex; align-items: center; justify-content: center; gap: 8px; }
         
-        .rank-list { display: flex; flex-direction: column; gap: 6px; }
+        .rank-list { display: flex; flex-direction: column; gap: 5px; }
         .rank-item { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            padding: 8px 12px; 
+            padding: 7px 10px; 
             background: #f8fafc; 
             border-radius: 8px; 
             border: 1px solid #e2e8f0; 
-            font-size: 13px; 
+            font-size: 12px; 
             transition: 0.2s; 
         }
-        .rank-item:hover { background: #fdf2f8; border-color: #fbcfe8; transform: scale(1.01); }
+        .rank-item:hover { background: #fdf2f8; border-color: #fbcfe8; }
         .rank-item.top-1 { background: #fef3c7; border-color: #fde68a; font-weight: bold; }
         .rank-item.top-2 { background: #f1f5f9; border-color: #cbd5e1; font-weight: bold; }
         .rank-item.top-3 { background: #ffedd5; border-color: #fed7aa; font-weight: bold; }
@@ -78,12 +78,13 @@
             border: 2px dashed var(--primary); 
             color: var(--primary); 
             width: 100%; 
-            padding: 8px; 
-            border-radius: 10px; 
+            padding: 6px; 
+            border-radius: 8px; 
             font-weight: bold; 
             cursor: pointer; 
-            margin-top: 10px; 
+            margin-top: 8px; 
             font-family: 'Cairo'; 
+            font-size: 12px;
             transition: 0.2s; 
         }
         .more-btn:hover { background: var(--primary); color: white; border-style: solid; }
@@ -94,6 +95,14 @@
             grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); 
             gap: 12px; 
         }
+
+        /* شبكة أفقية مصغرة لعرض لوحات الألعاب بجانب بعضها في صف واحد */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+        }
+
         .mini-board { 
             background: #ffffff; 
             border: 2px solid #cbd5e1; 
@@ -167,7 +176,7 @@
             </div>
         </div>
 
-        <!-- فرسان التفعيل الأسبوعي (فصل الرابع، الخامس، والسادس في صف واحد بحجم أصغر) -->
+        <!-- فرسان التفعيل الأسبوعي (الرابع، الخامس، السادس) -->
         <div class="board-card">
             <div class="board-title">⚡ فرسان التفعيل الأسبوعي (حسب الصفوف)</div>
             <div class="active-grid" id="weeklyActiveGridsContainer">
@@ -175,7 +184,7 @@
             </div>
         </div>
 
-        <!-- فرسان التفعيل الشهري (فصل الرابع، الخامس، والسادس في صف واحد بحجم أصغر) -->
+        <!-- فرسان التفعيل الشهري (الرابع، الخامس، السادس) -->
         <div class="board-card">
             <div class="board-title">🌙 فرسان التفعيل الشهري (حسب الصفوف)</div>
             <div class="active-grid" id="monthlyActiveGridsContainer">
@@ -192,48 +201,48 @@
             <button class="more-btn hidden" id="moreCombined" onclick="toggleMore('combined')">عرض المزيد 👇</button>
         </div>
 
-        <!-- لوحة الأكثر تفاعلاً ونشاطاً التاريخية -->
+        <!-- لوحات صدارة الألعاب (مرتبة في صف واحد كبطاقات مصغرة بحجم أصغر) -->
         <div class="board-card">
-            <div class="board-title">🔥 لوحة الأكثر تفاعلاً ونشاطاً التراكمية</div>
-            <div class="active-grid" id="activeGridsContainer">
-                <p style="text-align: center; color: #666; grid-column: 1/-1;">جاري تحليل الأنشطة...</p>
-            </div>
-        </div>
+            <div class="board-title">🎮 صدارة الألعاب التنافسية</div>
+            <div class="games-grid">
+                
+                <!-- صواريخ الفضاء -->
+                <div class="mini-board">
+                    <h3>🚀 صواريخ الفضاء</h3>
+                    <div class="rank-list" id="rocketList">
+                        <div style="text-align:center; color:#666; font-size:12px;">جاري التحميل...</div>
+                    </div>
+                    <button class="more-btn hidden" id="moreRocket" onclick="toggleMore('rocket')">عرض المزيد 👇</button>
+                </div>
 
-        <!-- صواريخ الفضاء -->
-        <div class="board-card">
-            <div class="board-title">🚀 أبطال صدارة "سباق صواريخ الفضاء"</div>
-            <div class="rank-list" id="rocketList">
-                <div style="text-align:center; color:#666;">جاري التحميل...</div>
-            </div>
-            <button class="more-btn hidden" id="moreRocket" onclick="toggleMore('rocket')">عرض المزيد 👇</button>
-        </div>
+                <!-- منجم الذهب -->
+                <div class="mini-board">
+                    <h3>⛏️ منجم الذهب</h3>
+                    <div class="rank-list" id="mineList">
+                        <div style="text-align:center; color:#666; font-size:12px;">جاري التحميل...</div>
+                    </div>
+                    <button class="more-btn hidden" id="moreMine" onclick="toggleMore('mine')">عرض المزيد 👇</button>
+                </div>
 
-        <!-- منجم الذهب -->
-        <div class="board-card">
-            <div class="board-title">⛏️ أبطال صدارة "لغز منجم الذهب"</div>
-            <div class="rank-list" id="mineList">
-                <div style="text-align:center; color:#666;">جاري التحميل...</div>
-            </div>
-            <button class="more-btn hidden" id="moreMine" onclick="toggleMore('mine')">عرض المزيد 👇</button>
-        </div>
+                <!-- الصعود نحو القمة -->
+                <div class="mini-board">
+                    <h3>🧗‍♂️ الصعود نحو القمة</h3>
+                    <div class="rank-list" id="mountainList">
+                        <div style="text-align:center; color:#666; font-size:12px;">جاري التحميل...</div>
+                    </div>
+                    <button class="more-btn hidden" id="moreMountain" onclick="toggleMore('mountain')">عرض المزيد 👇</button>
+                </div>
 
-        <!-- الصعود نحو القمة -->
-        <div class="board-card">
-            <div class="board-title">🧗‍♂️ أبطال صدارة "الصعود نحو القمة"</div>
-            <div class="rank-list" id="mountainList">
-                <div style="text-align:center; color:#666;">جاري التحميل...</div>
-            </div>
-            <button class="more-btn hidden" id="moreMountain" onclick="toggleMore('mountain')">عرض المزيد 👇</button>
-        </div>
+                <!-- الحية والدرج -->
+                <div class="mini-board">
+                    <h3>🐍 الحية والدرج</h3>
+                    <div class="rank-list" id="snakeList">
+                        <div style="text-align:center; color:#666; font-size:12px;">جاري التحميل...</div>
+                    </div>
+                    <button class="more-btn hidden" id="moreSnake" onclick="toggleMore('snake')">عرض المزيد 👇</button>
+                </div>
 
-        <!-- الحية والدرج -->
-        <div class="board-card">
-            <div class="board-title">🐍 أبطال صدارة "الحية والدرج الرياضية"</div>
-            <div class="rank-list" id="snakeList">
-                <div style="text-align:center; color:#666;">جاري التحميل...</div>
             </div>
-            <button class="more-btn hidden" id="moreSnake" onclick="toggleMore('snake')">عرض المزيد 👇</button>
         </div>
 
         <div class="back-container">
@@ -283,7 +292,6 @@
                 rawDataStore.combined = combinedArr;
                 renderListUI('combined', combinedArr);
 
-                processActiveGrids(allCombined, 'activeGridsContainer');
                 processPeriodicActivation(allCombined);
 
             } catch (err) { console.error("Error loading leaderboards:", err); }
@@ -321,7 +329,6 @@
             document.getElementById('schoolWeeklyChamp').textContent = weeklyArr.length > 0 ? `${weeklyArr[0].student_name} (${weeklyArr[0].cls})` : 'لا توجد بيانات هذا الأسبوع';
             document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
 
-            // فصل الرابع والخامس والسادس (بشكل منفصل وبحجم أصغر في صف واحد)
             renderGradeActivationGrids(weeklyArr, 'weeklyActiveGridsContainer');
             renderGradeActivationGrids(monthlyArr, 'monthlyActiveGridsContainer');
         }
@@ -350,7 +357,7 @@
 
                 let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
                 if (studentsArr.length === 0) {
-                    miniHTML += `<div style="text-align:center; color:#666; padding:8px; font-size:12px;">لا توجد نشاطات مسجلة</div>`;
+                    miniHTML += `<div style="text-align:center; color:#666; padding:6px; font-size:11px;">لا توجد نشاطات مسجلة</div>`;
                 } else {
                     studentsArr.slice(0, 5).forEach((st, idx) => {
                         let rankStr = rankNames[idx] || `المركز ${idx + 1}`;
@@ -363,33 +370,6 @@
                 }
                 miniHTML += `</div></div>`;
                 container.innerHTML += miniHTML;
-            });
-        }
-
-        function processActiveGrids(allCombined, containerId) {
-            let gradeGroups = { '3': { title: '⭐️ الصف الثالث', students: {} }, '4': { title: '⭐️ الصف الرابع', students: {} }, '5': { title: '⭐️ الصف الخامس', students: {} }, '6': { title: '⭐️ الصف السادس', students: {} }, 'other': { title: '⭐️ صفوف أخرى', students: {} } };
-            allCombined.forEach(item => {
-                let clsStr = String(item.cls).trim();
-                let groupKey = gradeGroups[clsStr.charAt(0)] ? clsStr.charAt(0) : 'other';
-                let studentKey = item.student_name + '_' + clsStr;
-                if (!gradeGroups[groupKey].students[studentKey]) gradeGroups[groupKey].students[studentKey] = { student_name: item.student_name, cls: clsStr, count: 0 };
-                gradeGroups[groupKey].students[studentKey].count++;
-            });
-
-            const activeContainer = document.getElementById(containerId);
-            activeContainer.innerHTML = '';
-            ['3', '4', '5', '6', 'other'].forEach(key => {
-                let group = gradeGroups[key];
-                let studentsArr = Object.values(group.students).sort((a, b) => b.count - a.count);
-                if (studentsArr.length === 0) return;
-
-                let miniHTML = `<div class="mini-board"><h3>${group.title}</h3><div class="rank-list">`;
-                studentsArr.slice(0, 5).forEach((st, idx) => {
-                    let rankStr = rankNames[idx] || (idx + 1);
-                    miniHTML += `<div class="rank-item"><span><b>${rankStr}</b> - ${st.student_name} (${st.cls})</span><span style="color:var(--primary); font-weight:bold; font-size:11px;">${st.count} مرات</span></div>`;
-                });
-                miniHTML += `</div></div>`;
-                activeContainer.innerHTML += miniHTML;
             });
         }
 
@@ -409,7 +389,7 @@
             const moreBtn = document.getElementById('more' + capitalize(gameKey));
             
             if (dataArr.length === 0) {
-                container.innerHTML = '<div style="text-align:center; color:#666; padding:10px;">لا توجد نتائج مسجلة حتى الآن.</div>';
+                container.innerHTML = '<div style="text-align:center; color:#666; padding:8px; font-size:11px;">لا توجد نتائج مسجلة.</div>';
                 if(moreBtn) moreBtn.classList.add('hidden');
                 return;
             }
@@ -421,12 +401,11 @@
                 let row = dataArr[i];
                 let rankText = rankNames[i] || (i + 1);
                 let topClass = i === 0 ? 'top-1' : i === 1 ? 'top-2' : i === 2 ? 'top-3' : '';
-                let medalIcon = i === 0 ? '🥇 ' : i === 1 ? '🥈 ' : i === 2 ? '🥉 ' : '';
 
                 html += `
                     <div class="rank-item ${topClass}">
-                        <span><b>${medalIcon}${rankText}</b>: ${row.student_name} (${row.cls})</span>
-                        <span style="color: #2e7d32; font-weight: bold;">${row.points} نقطة</span>
+                        <span><b>${rankText}</b>: ${row.student_name} (${row.cls})</span>
+                        <span style="color: #2e7d32; font-weight: bold; font-size:11px;">${row.points} ن</span>
                     </div>
                 `;
             }
@@ -435,7 +414,7 @@
 
             if (dataArr.length > 5) {
                 moreBtn.classList.remove('hidden');
-                moreBtn.textContent = showAllState[gameKey] ? 'إخفاء 👆' : 'عرض المزيد (حتى العاشر) 👇';
+                moreBtn.textContent = showAllState[gameKey] ? 'إخفاء 👆' : 'المزيد 👇';
             } else {
                 moreBtn.classList.add('hidden');
             }
