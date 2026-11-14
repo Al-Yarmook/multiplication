@@ -174,7 +174,7 @@
             </div>
         </div>
 
-        <!-- فرسان التفعيل الأسبوعي (مع عرض الفترة من إلى تلقائياً) -->
+        <!-- فرسان التفعيل الأسبوعي -->
         <div class="board-card">
             <div class="board-title">⚡ فرسان التفعيل الأسبوعي (حسب الصفوف)</div>
             <div class="board-subtitle" id="weeklyPeriodSubtitle">جاري تحديد الفترة...</div>
@@ -183,7 +183,7 @@
             </div>
         </div>
 
-        <!-- فرسان التفعيل الشهري (مع عرض اسم الشهر تلقائياً) -->
+        <!-- فرسان التفعيل الشهري -->
         <div class="board-card">
             <div class="board-title">🌙 فرسان التفعيل الشهري (حسب الصفوف)</div>
             <div class="board-subtitle" id="monthlyPeriodSubtitle">جاري تحديد الشهر...</div>
@@ -267,10 +267,36 @@
                     supabaseClient.from('snake_scores').select('*')
                 ]);
 
-                let rocketList = rocketData.data ? rocketData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
-                let mineList = mineData.data ? mineData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
-                let mountainList = mountainData.data ? mountainData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
-                let snakeList = snakeData.data ? snakeData.data.map(i => ({ student_name: i.student_name, cls: i.cls || 'غير مصنف', points: i.points || 0, created_at: i.created_at })) : [];
+                // حساب نطاق الأسبوع الحالي بدقة (من الأحد إلى السبت)
+                let now = new Date();
+                let currentDayOfWeek = now.getDay();
+                let startOfWeek = new Date(now);
+                startOfWeek.setDate(now.getDate() - currentDayOfWeek);
+                startOfWeek.setHours(0, 0, 0, 0);
+
+                let endOfWeek = new Date(startOfWeek);
+                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                endOfWeek.setHours(23, 59, 59, 999);
+
+                // دالة تصفية صارمة تستبعد السجلات القديمة التي ليس لها وقت حديث ضمن الأسبوع الحالي
+                let filterValidWeeklyRecords = (dataList) => {
+                    if (!dataList) return [];
+                    return dataList.map(i => ({
+                        student_name: i.student_name,
+                        cls: i.cls || 'غير مصنف',
+                        points: i.points || 0,
+                        created_at: i.created_at ? new Date(i.created_at) : null
+                    })).filter(i => {
+                        if ((i.points || 0) <= 0) return false;
+                        if (!i.created_at) return false; // استبعاد الصفر والسجلات القديمة بدون وقت
+                        return i.created_at >= startOfWeek && i.created_at <= endOfWeek;
+                    });
+                };
+
+                let rocketList = filterValidWeeklyRecords(rocketData.data);
+                let mineList = filterValidWeeklyRecords(mineData.data);
+                let mountainList = filterValidWeeklyRecords(mountainData.data);
+                let snakeList = filterValidWeeklyRecords(snakeData.data);
 
                 renderGameList('rocket', rocketList);
                 renderGameList('mine', mineList);
@@ -280,7 +306,6 @@
                 let allCombined = [...rocketList, ...mineList, ...mountainList, ...snakeList];
                 let combinedBest = {};
                 allCombined.forEach(item => {
-                    if ((item.points || 0) <= 0) return;
                     let key = item.student_name + '_' + item.cls;
                     if (!combinedBest[key] || item.points > combinedBest[key].points) combinedBest[key] = item;
                 });
@@ -297,7 +322,6 @@
         function processPeriodicActivation(allRecords) {
             let now = new Date();
             
-            // حساب نطاق الأسبوع الحالي ديناميكياً (من الأحد إلى السبت) وعرضه كتابةً
             let currentDayOfWeek = now.getDay();
             let startOfWeek = new Date(now);
             startOfWeek.setDate(now.getDate() - currentDayOfWeek);
@@ -307,11 +331,9 @@
             endOfWeek.setDate(startOfWeek.getDate() + 6);
             endOfWeek.setHours(23, 59, 59, 999);
 
-            // تنسيق عرض التاريخ بالعربي (مثال: الفترة من 2026/11/08 إلى 2026/11/14)
             let formatDate = (d) => `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
             document.getElementById('weeklyPeriodSubtitle').textContent = `(الفترة من ${formatDate(startOfWeek)} إلى ${formatDate(endOfWeek)})`;
 
-            // عرض الشهر الحالي (مثال: نوفمبر)
             const monthNamesArabic = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
             let currentMonthName = monthNamesArabic[now.getMonth()];
             let currentYear = now.getFullYear();
@@ -329,14 +351,14 @@
                 let d = item.created_at ? new Date(item.created_at) : new Date();
                 let key = item.student_name + '_' + item.cls;
 
-                // 1. تصفية أسبوعية ديناميكية للأسبوع الجاري حصرياً
+                // تصفية الأسبوع الجاري حصرياً
                 if (d >= startOfWeek && d <= endOfWeek) {
                     if (!weeklyMap[key]) weeklyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
                     weeklyMap[key].totalPoints = Math.max(weeklyMap[key].totalPoints, pts);
                     weeklyMap[key].count += 1;
                 }
 
-                // 2. تصفية شهرية للشهر الحالي
+                // تصفية الشهر الحالي
                 if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
                     if (!monthlyMap[key]) monthlyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
                     monthlyMap[key].totalPoints = Math.max(monthlyMap[key].totalPoints, pts);
@@ -358,7 +380,7 @@
             let monthlyArr = evaluateAndSort(monthlyMap);
 
             document.getElementById('schoolWeeklyChamp').textContent = weeklyArr.length > 0 ? `${weeklyArr[0].student_name} (${weeklyArr[0].cls})` : 'لا توجد بيانات لهذا الأسبوع';
-            document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].name || monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
+            document.getElementById('schoolMonthlyChamp').textContent = monthlyArr.length > 0 ? `${monthlyArr[0].student_name} (${monthlyArr[0].cls})` : 'لا توجد بيانات هذا الشهر';
 
             renderGradeActivationGrids(weeklyArr, 'weeklyActiveGridsContainer');
             renderGradeActivationGrids(monthlyArr, 'monthlyActiveGridsContainer');
