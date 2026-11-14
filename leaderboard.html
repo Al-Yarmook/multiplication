@@ -192,18 +192,18 @@
             </div>
         </div>
 
-        <!-- الصدارة العامة -->
+        <!-- الصدارة العامة (تراكمية) -->
         <div class="board-card">
-            <div class="board-title">⚔️ أبطال الصدارة العامة (جميع الألعاب مدمجة)</div>
+            <div class="board-title">⚔️ أبطال الصدارة العامة (تراكمي جميع الألعاب)</div>
             <div class="rank-list" id="combinedList">
                 <div style="text-align:center; color:#666;">جاري تحميل أبطال الصدارة العامة...</div>
             </div>
             <button class="more-btn hidden" id="moreCombined" onclick="toggleMore('combined')">عرض المزيد 👇</button>
         </div>
 
-        <!-- لوحات صدارة الألعاب -->
+        <!-- لوحات صدارة الألعاب (تراكمية) -->
         <div class="board-card">
-            <div class="board-title">🎮 صدارة الألعاب التنافسية</div>
+            <div class="board-title">🎮 صدارة الألعاب التنافسية (تراكمي)</div>
             <div class="games-grid">
                 
                 <div class="mini-board">
@@ -267,42 +267,28 @@
                     supabaseClient.from('snake_scores').select('*')
                 ]);
 
-                // حساب نطاق الأسبوع الحالي بدقة (من الأحد إلى السبت)
-                let now = new Date();
-                let currentDayOfWeek = now.getDay();
-                let startOfWeek = new Date(now);
-                startOfWeek.setDate(now.getDate() - currentDayOfWeek);
-                startOfWeek.setHours(0, 0, 0, 0);
-
-                let endOfWeek = new Date(startOfWeek);
-                endOfWeek.setDate(startOfWeek.getDate() + 6);
-                endOfWeek.setHours(23, 59, 59, 999);
-
-                // دالة تصفية صارمة تستبعد السجلات القديمة التي ليس لها وقت حديث ضمن الأسبوع الحالي
-                let filterValidWeeklyRecords = (dataList) => {
+                let formatRecords = (dataList) => {
                     if (!dataList) return [];
                     return dataList.map(i => ({
                         student_name: i.student_name,
                         cls: i.cls || 'غير مصنف',
                         points: i.points || 0,
                         created_at: i.created_at ? new Date(i.created_at) : null
-                    })).filter(i => {
-                        if ((i.points || 0) <= 0) return false;
-                        if (!i.created_at) return false; // استبعاد الصفر والسجلات القديمة بدون وقت
-                        return i.created_at >= startOfWeek && i.created_at <= endOfWeek;
-                    });
+                    })).filter(i => (i.points || 0) > 0); // استبعاد الصفر تماماً
                 };
 
-                let rocketList = filterValidWeeklyRecords(rocketData.data);
-                let mineList = filterValidWeeklyRecords(mineData.data);
-                let mountainList = filterValidWeeklyRecords(mountainData.data);
-                let snakeList = filterValidWeeklyRecords(snakeData.data);
+                let rocketList = formatRecords(rocketData.data);
+                let mineList = formatRecords(mineData.data);
+                let mountainList = formatRecords(mountainData.data);
+                let snakeList = formatRecords(snakeData.data);
 
+                // صدارة الألعاب التنافسية (تراكمية في جميع الأوقات)
                 renderGameList('rocket', rocketList);
                 renderGameList('mine', mineList);
                 renderGameList('mountain', mountainList);
                 renderGameList('snake', snakeList);
 
+                // الصدارة العامة (تراكمية لجميع الألعاب مدمجة)
                 let allCombined = [...rocketList, ...mineList, ...mountainList, ...snakeList];
                 let combinedBest = {};
                 allCombined.forEach(item => {
@@ -314,6 +300,7 @@
                 rawDataStore.combined = combinedArr;
                 renderListUI('combined', combinedArr);
 
+                // حساب التفعيل الأسبوعي والشهري بالمعايير المحددة
                 processPeriodicActivation(allCombined);
 
             } catch (err) { console.error("Error loading leaderboards:", err); }
@@ -322,6 +309,7 @@
         function processPeriodicActivation(allRecords) {
             let now = new Date();
             
+            // 1. حساب نطاق الأسبوع الحالي بدقة (من الأحد إلى السبت)
             let currentDayOfWeek = now.getDay();
             let startOfWeek = new Date(now);
             startOfWeek.setDate(now.getDate() - currentDayOfWeek);
@@ -334,34 +322,31 @@
             let formatDate = (d) => `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, '0')}/${String(d.getDate()).padStart(2, '0')}`;
             document.getElementById('weeklyPeriodSubtitle').textContent = `(الفترة من ${formatDate(startOfWeek)} إلى ${formatDate(endOfWeek)})`;
 
-            const monthNamesArabic = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
-            let currentMonthName = monthNamesArabic[now.getMonth()];
-            let currentYear = now.getFullYear();
-            document.getElementById('monthlyPeriodSubtitle').textContent = `(شهر: ${currentMonthName} ${currentYear})`;
-
+            // 2. الشهر الميلادي الحالي (نوفمبر أو الشهر الحالي بكافة درجاته ومراته)
             let currentMonth = now.getMonth();
+            let currentYear = now.getFullYear();
+
+            const monthNamesArabic = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+            document.getElementById('monthlyPeriodSubtitle').textContent = `(شهر: ${monthNamesArabic[currentMonth]} ${currentYear} - جميع الدرجات والمرات)`;
 
             let weeklyMap = {};
             let monthlyMap = {};
 
             allRecords.forEach(item => {
-                let pts = item.points || 0;
-                if (pts <= 0) return;
-
-                let d = item.created_at ? new Date(item.created_at) : new Date();
+                let d = item.created_at;
                 let key = item.student_name + '_' + item.cls;
 
-                // تصفية الأسبوع الجاري حصرياً
-                if (d >= startOfWeek && d <= endOfWeek) {
+                // أ) تفعيل الأسبوع الحالي حصرياً (يشترط وجود تاريخ ضمن الأسبوع)
+                if (d && d >= startOfWeek && d <= endOfWeek) {
                     if (!weeklyMap[key]) weeklyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
-                    weeklyMap[key].totalPoints = Math.max(weeklyMap[key].totalPoints, pts);
+                    weeklyMap[key].totalPoints = Math.max(weeklyMap[key].totalPoints, item.points);
                     weeklyMap[key].count += 1;
                 }
 
-                // تصفية الشهر الحالي
-                if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+                // ب) تفعيل الشهر الحالي (يتضمن جميع الدرجات والمرات خلال الشهر الميلادي بغض النظر عن تاريخ الإدخال الدقيق طالما في نفس الشهر)
+                if (d && d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
                     if (!monthlyMap[key]) monthlyMap[key] = { student_name: item.student_name, cls: item.cls, totalPoints: 0, count: 0 };
-                    monthlyMap[key].totalPoints = Math.max(monthlyMap[key].totalPoints, pts);
+                    monthlyMap[key].totalPoints = Math.max(monthlyMap[key].totalPoints, item.points);
                     monthlyMap[key].count += 1;
                 }
             });
@@ -479,6 +464,10 @@
             showAllState[gameKey] = !showAllState[gameKey];
             renderListUI(gameKey, rawDataStore[gameKey]);
         }
+
+        (function capitalize(s) {
+            return s.charAt(0).toUpperCase() + s.slice(1);
+        });
 
         function capitalize(s) {
             return s.charAt(0).toUpperCase() + s.slice(1);
