@@ -98,23 +98,20 @@
 
         .report-preview-area { background: white; padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px solid #e2e8f0; }
         
-        /* تصميم صفحة التقرير المستقلة لكل شعبة */
+        /* ضبط الصفحة الواحدة بدقة للطباعة والـ PDF */
         .report-single-page { 
             box-sizing: border-box;
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 10px;
-            padding: 10px 14px;
-            margin-bottom: 20px;
+            padding: 12px 16px;
+            margin-bottom: 25px;
             page-break-after: always;
             break-after: page;
             page-break-inside: avoid;
             break-inside: avoid;
             width: 100%;
-            min-height: 95vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+            position: relative;
         }
 
         .report-single-page:last-of-type {
@@ -129,7 +126,7 @@
             align-items: center;
             border-bottom: 2px solid var(--primary);
             padding-bottom: 6px;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
         .report-header-right { font-size: 9.5pt; font-weight: bold; color: #475569; line-height: 1.25; width: 33%; }
         .report-header-center { text-align: center; width: 34%; }
@@ -141,19 +138,19 @@
             display: flex;
             justify-content: space-between;
             background: #fdf2f8;
-            padding: 4px 8px;
+            padding: 5px 10px;
             border-radius: 6px;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-size: 9.5pt;
             font-weight: bold;
             color: #831843;
             border: 1px solid #fbcfe8;
         }
 
-        .table-container { margin-bottom: 8px; flex: 1; }
+        .table-container { margin-bottom: 12px; }
 
         .report-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
-        .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 2.5px 3px; text-align: center; line-height: 1.15; }
+        .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 3px 4px; text-align: center; line-height: 1.2; }
         .report-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 9pt; border-bottom: 2px solid var(--primary); }
         .report-table tr:nth-child(even) { background-color: #fafaf9; }
 
@@ -162,8 +159,8 @@
             border-collapse: collapse; 
             border: none !important; 
             background: #ffffff;
-            margin-top: 10px;
-            padding-top: 4px;
+            margin-top: 15px;
+            padding-top: 6px;
             border-top: 1px dashed #cbd5e1 !important;
         }
         .footer-table td { border: none !important; padding: 2px; text-align: center; vertical-align: top; width: 20%; background: transparent; }
@@ -172,9 +169,9 @@
         .hidden { display: none !important; }
         footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
 
-        /* إعدادات الطباعة وتصدير PDF */
+        /* إعدادات الطباعة الدقيقة لتجنب الصفحات الفارغة وضمان بقاء الفوتر أسفل الصفحة لكل شعبة */
         @media print {
-            @page { size: A4 portrait; margin: 8mm; }
+            @page { size: A4 portrait; margin: 6mm; }
             body { background: white; padding: 0; margin: 0; }
             header, .section-card:not(#reportOutputCard), .btn-row, .nav-tabs, footer.author-footer, #reportHeaderTitleCard, #admin-nav-container { display: none !important; }
             .report-preview-area { box-shadow: none; padding: 0; margin: 0; border: none; }
@@ -185,7 +182,7 @@
                 break-inside: avoid;
                 page-break-after: always;
                 break-after: page;
-                min-height: 100vh;
+                height: 98vh;
                 display: flex;
                 flex-direction: column;
                 justify-content: space-between;
