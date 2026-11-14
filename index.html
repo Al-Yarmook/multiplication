@@ -307,6 +307,7 @@
                 if (studentTotalPoints >= 5000) earnedBadgesMap["pts_5000"] = { name: "وسام 5,000 نقطة", icon: "🥇", count: 1, scope: "تجاوز 5000 نقطة", desc: "تجاوز 5000 نقطة" };
                 if (studentTotalPoints >= 10000) earnedBadgesMap["pts_10000"] = { name: "وسام 10,000 نقطة", icon: "💎", count: 1, scope: "بطل الأساطير", desc: "بطل الأساطير" };
 
+                // استخدام الوزن الجديد للاحتساب (النقاط × عدد المرات، مع استبعاد الصفر تماماً)
                 let weeklyWinsObj = calculatePeriodicWinsDetailed(allRecords, currentStudentName, currentStudentClass, 'week');
                 let monthlyWinsObj = calculatePeriodicWinsDetailed(allRecords, currentStudentName, currentStudentClass, 'month');
 
@@ -370,6 +371,7 @@
             }
         }
 
+        // المعادلة المطورة: الوزن الأكبر للنقاط مضروبة في عدد المرات (مع استبعاد من نقاطهم صفر تماماً)
         function calculatePeriodicWinsDetailed(records, studentName, studentClass, periodType) {
             let periodsMap = {};
 
@@ -402,19 +404,38 @@
                 periodRecords.forEach(r => {
                     let key = r.student_name + '_' + (r.cls || 'غير مصنف');
                     let pts = r.points || 0;
-                    if (!userScores[key] || pts > userScores[key].points) {
-                        userScores[key] = { name: r.student_name, cls: r.cls || 'غير مصنف', score: pts + 50 };
+                    
+                    // استبعاد الطلاب الذين لديهم صفر نقاط تماماً
+                    if (pts <= 0) return;
+
+                    if (!userScores[key]) {
+                        userScores[key] = { name: r.student_name, cls: r.cls || 'غير مصنف', totalPoints: 0, count: 0 };
                     }
+                    userScores[key].totalPoints = Math.max(userScores[key].totalPoints, pts);
+                    userScores[key].count += 1;
                 });
 
-                let sortedPeriodArr = Object.values(userScores).sort((a, b) => b.score - a.score);
+                // تطبيق الوزن الخاص بك: النقاط × عدد المرات لترتيب الفرسان
+                let evaluatedUsers = Object.values(userScores).map(u => {
+                    return {
+                        name: u.name,
+                        cls: u.cls,
+                        // الرقم الخاص للترتيب (النقاط مضاعفة في عدد المرات للاستحقاق)
+                        customScore: (u.totalPoints * u.count) + u.totalPoints 
+                    };
+                });
 
+                let sortedPeriodArr = evaluatedUsers.sort((a, b) => b.customScore - a.customScore);
+
+                // فحص الشعبة بشكل مستقل
                 let secArr = sortedPeriodArr.filter(s => s.cls === studentClass);
                 if (secArr.length > 0 && secArr[0].name === studentName) sectionWins++;
 
+                // فحص المرحلة بشكل مستقل
                 let gradeArr = sortedPeriodArr.filter(s => s.cls.startsWith(gradePrefix));
                 if (gradeArr.length > 0 && gradeArr[0].name === studentName) gradeWins++;
 
+                // فحص المدرسة بشكل مستقل
                 if (sortedPeriodArr.length > 0 && sortedPeriodArr[0].name === studentName) schoolWins++;
             });
 
@@ -465,8 +486,8 @@
                 document.getElementById('schoolRankText').textContent = schoolRankText;
 
             } catch (e) {
-                document.getElementById('sectionRankText').textContent = 'تعذر الحساب';
-                document.getElementById('classRankText').textContent = 'تعذر الحساب';
+                document.getElementById('sectionRankTest').textContent = 'تعذر الحساب';
+                document.getElementById('classRankTest').textContent = 'تعذر الحساب';
                 document.getElementById('schoolRankText').textContent = 'تعذر الحساب';
             }
         }
