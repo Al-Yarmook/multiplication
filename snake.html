@@ -76,13 +76,13 @@
         .top-toast { position: fixed; top: 15px; left: 50%; transform: translateX(-50%) translateY(-50px); background: #1e293b; color: white; padding: 8px 18px; border-radius: 8px; font-size: 12px; font-weight: bold; z-index: 300; opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); pointer-events: none; }
         .top-toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
 
-        .modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; text-align: center; padding: 15px; border-radius: 12px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(255, 255, 255, 0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; text-align: center; padding: 15px; overflow-y: auto; }
         .modal h1 { color: var(--primary); font-size: 18px; margin-bottom: 6px; }
         .instructions-box { background: #f8fafc; padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; text-align: right; margin-bottom: 8px; width: 100%; max-width: 360px; font-size: 11px; line-height: 1.4; }
         
-        .results-table { width: 100%; max-width: 380px; margin-bottom: 8px; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; font-size: 10px; }
-        .results-table th, .results-table td { padding: 5px; border-bottom: 1px solid #e2e8f0; text-align: center; }
-        .results-table th { background: #f1f5f9; color: var(--primary); }
+        .results-table { width: 100%; max-width: 380px; margin-bottom: 8px; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; font-size: 11px; }
+        .results-table th, .results-table td { padding: 6px; border: 1px solid #cbd5e1; text-align: center; }
+        .results-table th { background: #f1f5f9; color: var(--primary); font-weight: bold; }
 
         .btn { background: var(--primary); color: white; border: none; padding: 6px 16px; font-size: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; transition: 0.3s; text-decoration: none; display: inline-block; }
         .btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
@@ -176,10 +176,12 @@
                 <thead>
                     <tr><th>البطل</th><th>النقاط</th><th>الوقت المستغرق</th></tr>
                 </thead>
-                <tbody id="resultsBody"></tbody>
+                <tbody id="resultsBody">
+                    <tr><td colspan="3" style="text-align: center; color: #64748b;">جاري تحميل النتائج...</td></tr>
+                </tbody>
             </table>
 
-            <div style="display: flex; gap: 6px;">
+            <div style="display: flex; gap: 6px; margin-top: 6px;">
                 <button class="btn" onclick="startSnakeGame()">لعب من جديد 🔄</button>
                 <a href="index.html" class="btn btn-dark">الرئيسية 🏠</a>
             </div>
@@ -781,37 +783,56 @@
             document.getElementById('finalScoreText').textContent = `أحسنت يا ${studentData.name}! حققت ${toArabicNum(score)} نقطة بزمن: ${toArabicNum(timeStr)}`;
             document.getElementById('saveStatus').textContent = 'جاري حفظ النتيجة وجلب لوحة الشرف...';
 
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #64748b;">جاري تحديث لوحة الشرف...</td></tr>`;
+
             try {
-                await supabaseClient.from('snake_scores').insert([{
+                // استخدام اسم العمود الصحيح 'game_time' بدلاً من weekly_points لتوافق جدول Supabase
+                const insertPayload = {
                     student_name: studentData.name, 
-                    cls: studentData.cls, 
+                    cls: String(studentData.cls || ''), 
                     points: score, 
-                    weekly_points: gameTime 
-                }]);
+                    game_time: gameTime 
+                };
+
+                const { error: insertError } = await supabaseClient.from('snake_scores').insert([insertPayload]);
+                if (insertError) {
+                    console.error("Supabase Insert Error:", insertError);
+                    throw insertError;
+                }
                 
-                const { data: topScores } = await supabaseClient.from('snake_scores')
-                    .select('student_name, points, weekly_points')
+                // جلب أعلى النتائج للوحة الشرف
+                const { data: topScores, error: fetchError } = await supabaseClient.from('snake_scores')
+                    .select('*')
                     .order('points', { ascending: false })
-                    .order('weekly_points', { ascending: true })
+                    .order('game_time', { ascending: true })
                     .limit(5);
 
-                const tbody = document.getElementById('resultsBody');
+                if (fetchError) throw fetchError;
+
                 tbody.innerHTML = '';
                 if (topScores && topScores.length > 0) {
                     topScores.forEach(row => {
-                        let rmins = Math.floor(row.weekly_points / 60);
-                        let rsecs = row.weekly_points % 60;
+                        let sName = row.student_name || row.name || 'بطل';
+                        let sPoints = row.points !== undefined ? row.points : 0;
+                        let sTime = row.game_time !== undefined ? row.game_time : (row.weekly_points || 0);
+
+                        let rmins = Math.floor(sTime / 60);
+                        let rsecs = sTime % 60;
                         let rtimeStr = `${String(rmins).padStart(2, '0')}:${String(rsecs).padStart(2, '0')}`;
                         
                         let tr = document.createElement('tr');
-                        // الترتيب الصحيح للخلايا مطابقة تماماً لترتيب الترويسة (البطل، النقاط، الوقت)
-                        tr.innerHTML = `<td>${row.student_name}</td><td>⭐ ${toArabicNum(row.points)}</td><td>⏱️ ${toArabicNum(rtimeStr)}</td>`;
+                        tr.innerHTML = `<td>${sName}</td><td>⭐ ${toArabicNum(sPoints)}</td><td>⏱️ ${toArabicNum(rtimeStr)}</td>`;
                         tbody.appendChild(tr);
                     });
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #64748b;">لا توجد سجلات بعد</td></tr>`;
                 }
-                document.getElementById('saveStatus').textContent = '✅ تم حفظ النتيجة بنجاح!';
+                document.getElementById('saveStatus').textContent = '✅ تم حفظ النتيجة بنجاح في السحابة!';
             } catch (e) {
-                document.getElementById('saveStatus').textContent = '⚠️ تم حفظ النتيجة محلياً (تعذر الاتصال بالسحابة).';
+                console.error("Cloud Save Exception:", e);
+                tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #dc2626;">تعذر جلب لوحة الشرف سحابياً</td></tr>`;
+                document.getElementById('saveStatus').textContent = '⚠️ تم حفظ النتيجة محلياً (حدث خطأ في قاعدة البيانات).';
             }
         }
 
