@@ -256,15 +256,16 @@
             correctPoints: 50,
             wrongPenalty: 20,
             ladderBonus: 100,
-            snakePenalty: 50
+            snakePenalty: 50,
+            questionTypes: ['product', 'missing_factor'] // أنواع الأسئلة من لوحة المدير
         };
 
-        // دالة جلب إعدادات الصفوف والجدول من سحابة Supabase
         let studentMaxTable = 12; // القيمة الافتراضية
 
+        // دالة جلب الإعدادات المحدثة مباشرة من جدول game_settings و stage_configs في سحابة Supabase
         async function loadSnakeSettings() {
             try {
-                // 1. جلب إعدادات اللعبة العامة
+                // 1. جلب إعدادات اللعبة العامة من لوحة المدير
                 const { data: settingsData } = await supabaseClient.from('game_settings').select('value').eq('key', 'snake_game_settings').single();
                 if (settingsData && settingsData.value) {
                     snakeSettings = { ...snakeSettings, ...settingsData.value };
@@ -274,9 +275,8 @@
                     }
                 }
 
-                // 2. جلب أقصى رقم جدول مسموح به لصف الطالب من جدول stage_configs
+                // 2. جلب أقصى جدول ضرب مسموح به لصف الطالب من جدول stage_configs
                 if (studentData && studentData.cls) {
-                    // استخراج رقم الصف من اسم الصف إذا كان نصياً (مثلاً "الصف الخامس" -> 5) أو اعتباره رقماً مباشرة
                     let clsVal = studentData.cls;
                     let stageNum = 5; // افتراضي
                     if (typeof clsVal === 'number') {
@@ -286,7 +286,7 @@
                         if (match) stageNum = parseInt(match[0]);
                     }
 
-                    const { data: configData, error } = await supabaseClient
+                    const { data: configData } = await supabaseClient
                         .from('stage_configs')
                         .select('max_table')
                         .eq('stage', stageNum)
@@ -295,7 +295,6 @@
                     if (configData && configData.max_table) {
                         studentMaxTable = parseInt(configData.max_table);
                     } else {
-                        // محاولة جلب المطابقة بالنص أو الصف الاول إذا لم يوجد تطابق دقيق
                         const { data: allConfigs } = await supabaseClient.from('stage_configs').select('*');
                         if (allConfigs && allConfigs.length > 0) {
                             let found = allConfigs.find(c => String(c.stage) === String(clsVal) || String(c.stage) === String(stageNum));
@@ -362,7 +361,7 @@
         }
 
         function buildBoardUI() {
-            const max = snakeSettings.maxSquares;
+            let max = parseInt(snakeSettings.maxSquares) || 100;
             document.getElementById('maxPosVal').textContent = toArabicNum(max);
             const grid = document.getElementById('boardGrid');
             grid.innerHTML = '';
@@ -487,17 +486,18 @@
             document.getElementById('scoreVal').textContent = toArabicNum(score);
         }
 
-        function startSnakeGame() {
+        async function startSnakeGame() {
             document.getElementById('instructionsModal').classList.add('hidden');
             document.getElementById('gameOverModal').classList.add('hidden');
             currentPosition = 1;
             score = 0;
             gameTime = 0;
             isProcessingMove = false;
-            loadSnakeSettings().then(() => {
-                generateBoardHazards();
-                buildBoardUI();
-            });
+            
+            // تحميل الإعدادات المحدثة من السحابة قبل البدء
+            await loadSnakeSettings();
+            generateBoardHazards();
+            buildBoardUI();
 
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
@@ -516,6 +516,7 @@
             document.getElementById('diceSection').classList.remove('hidden');
             document.getElementById('questionCard').classList.add('hidden');
             isProcessingMove = false;
+            updatePlayerToken();
         }
 
         function rollDice() {
@@ -542,7 +543,7 @@
                     diceBox.classList.remove('big-overlay');
                     document.getElementById('miniDice').textContent = toArabicNum(currentDiceVal);
                     
-                    let maxP = snakeSettings.maxSquares;
+                    let maxP = parseInt(snakeSettings.maxSquares) || 100;
                     let needed = maxP - currentPosition;
                     
                     if (currentDiceVal <= needed) {
@@ -560,11 +561,14 @@
             document.getElementById('diceSection').classList.add('hidden');
             document.getElementById('questionCard').classList.remove('hidden');
 
-            let isProduct = Math.random() > 0.5;
-            // استخدام studentMaxTable المستخرج من سحابة Supabase بدلاً من التوقف عند 10
+            // تحديد نوع الأسئلة بناءً على إعدادات لوحة المدير (questionTypes)
+            let allowedTypes = snakeSettings.questionTypes || ['product', 'missing_factor'];
+            let chosenType = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
+            let isProduct = (chosenType === 'product');
+
             let limit = studentMaxTable || 12;
             let n1 = Math.floor(Math.random() * limit) + 1;
-            let n2 = Math.floor(Math.random() * 9) + 1; // الرقم الثاني من 1 إلى 9 أو بحسب الجدول
+            let n2 = Math.floor(Math.random() * 9) + 1;
             let total = n1 * n2;
             let correctAns = 0;
 
@@ -657,7 +661,10 @@
             if (selected === correct) {
                 playAudioEffect('correct');
                 confetti({ particleCount: 40, spread: 50, origin: { y: 0.6 } });
-                score += snakeSettings.correctPoints;
+                
+                // احتساب النقاط وتحديثها فوراً في الـ HUD
+                score += (parseInt(snakeSettings.correctPoints) || 50);
+                updatePlayerToken();
                 
                 if (diceRolled > neededSteps) {
                     showTopToast('إجابة صحيحة! بانتظار رمية مطابقة.');
@@ -669,15 +676,17 @@
                 }
             } else {
                 playAudioEffect('wrong');
-                score = Math.max(0, score - snakeSettings.wrongPenalty);
+                let penalty = parseInt(snakeSettings.wrongPenalty) || 20;
+                score = Math.max(0, score - penalty);
                 updatePlayerToken();
-                showTopToast(`إجابة خاطئة! خصم ${toArabicNum(snakeSettings.wrongPenalty)} نقطة.`);
+                showTopToast(`إجابة خاطئة! خصم ${toArabicNum(penalty)} نقطة.`);
                 showDiceSection();
             }
         }
 
         function checkCellHazards() {
-            if (currentPosition >= snakeSettings.maxSquares) {
+            let maxP = parseInt(snakeSettings.maxSquares) || 100;
+            if (currentPosition >= maxP) {
                 endGameWin();
                 return;
             }
@@ -721,26 +730,33 @@
                 
                 if (type === 'ladder') {
                     playAudioEffect('ladder');
-                    score += snakeSettings.ladderBonus;
-                    showTopToast(`🪜 تسلقت السلم بنجاح! +${toArabicNum(snakeSettings.ladderBonus)} نقطة`);
+                    let bonus = parseInt(snakeSettings.ladderBonus) || 100;
+                    score += bonus;
+                    updatePlayerToken();
+                    showTopToast(`🪜 تسلقت السلم بنجاح! +${toArabicNum(bonus)} نقطة`);
                     animatePlayerSteps(currentPosition, target, () => {
                         checkAfterHazardArrival();
                     });
                 } else {
-                    score += snakeSettings.correctPoints;
+                    let pts = parseInt(snakeSettings.correctPoints) || 50;
+                    score += pts;
                     updatePlayerToken();
                     showTopToast('🛡️ نجوت من الثعبان بنجاح!');
                     showDiceSection();
                 }
             } else {
                 playAudioEffect('wrong');
+                let wrongPen = parseInt(snakeSettings.wrongPenalty) || 20;
+                let snakePen = parseInt(snakeSettings.snakePenalty) || 50;
+
                 if (type === 'ladder') {
-                    score = Math.max(0, score - snakeSettings.wrongPenalty);
+                    score = Math.max(0, score - wrongPen);
                     updatePlayerToken();
-                    showTopToast(`خطأ! خصم ${toArabicNum(snakeSettings.wrongPenalty)} نقطة وبقيت مكانك.`);
+                    showTopToast(`خطأ! خصم ${toArabicNum(wrongPen)} نقطة وبقيت مكانك.`);
                     showDiceSection();
                 } else {
-                    score = Math.max(0, score - snakeSettings.snakePenalty);
+                    score = Math.max(0, score - snakePen);
+                    updatePlayerToken();
                     showTopToast(`🐍 التهمك الثعبان ونزلت للأسفل!`);
                     animatePlayerSteps(currentPosition, target, () => {
                         checkAfterHazardArrival();
@@ -750,7 +766,8 @@
         }
 
         function checkAfterHazardArrival() {
-            if (currentPosition >= snakeSettings.maxSquares) {
+            let maxP = parseInt(snakeSettings.maxSquares) || 100;
+            if (currentPosition >= maxP) {
                 endGameWin();
             } else {
                 showDiceSection();
