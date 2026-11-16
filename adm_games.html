@@ -46,14 +46,14 @@
             <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
         </header>
 
-        <!-- شريط التنقل العلوي الموحد (يتم حقنه تلقائياً عبر navbar.js) -->
+        <!-- شريط التنقل العلوي الموحد -->
         <div id="admin-nav-container"></div>
 
         <div class="section-card">
             <h2>إعدادات الألعاب ومستويات جداول الضرب 🎮</h2>
             <p style="color: #646f79; margin-bottom: 20px;">من هنا يمكنك التحكم في مستويات صعوبة الأسئلة، نطاق جداول الضرب لكل مرحلة صفية، وأوقات الألعاب ونقاطها.</p>
 
-            <!-- 1. إعدادات نطاق الجداول لكل مرحلة صفية -->
+            <!-- 1. إعدادات نطاق الجداول لكل مرحلة صفية (مزامنة مزدوجة) -->
             <div class="game-sub-section">
                 <h3>📚 أقصى جدول ضرب مسموح لكل مرحلة دراسية</h3>
                 <div class="form-row">
@@ -164,7 +164,6 @@
         إعداد أ. صادق القلعاوي | مدرسة اليرموك الابتدائية للبنين 🏫✨
     </footer>
 
-    <!-- استدعاء ملف القائمة الموحدة -->
     <script src="navbar.js"></script>
 
     <script>
@@ -187,17 +186,25 @@
         });
 
         async function loadAllGameSettings() {
-            // 1. مستويات الجداول
+            // 1. مستويات الجداول (محاولة القراءة من stage_configs أولاً، وإذا لم توجد من game_settings)
             try {
-                const { data } = await supabaseClient.from('game_settings').select('value').eq('key', 'grade_tables_settings').single();
-                if(data && data.value) {
-                    const cfg = data.value;
-                    document.getElementById('maxTable1').value = cfg.t1 || 3;
-                    document.getElementById('maxTable2').value = cfg.t2 || 5;
-                    document.getElementById('maxTable3').value = cfg.t3 || 7;
-                    document.getElementById('maxTable4').value = cfg.t4 || 9;
-                    document.getElementById('maxTable5').value = cfg.t5 || 12;
-                    document.getElementById('maxTable6').value = cfg.t6 || 12;
+                const { data: stageData } = await supabaseClient.from('stage_configs').select('*');
+                if (stageData && stageData.length > 0) {
+                    stageData.forEach(row => {
+                        let inputEl = document.getElementById(`maxTable${row.stage}`);
+                        if (inputEl) inputEl.value = row.max_table;
+                    });
+                } else {
+                    const { data } = await supabaseClient.from('game_settings').select('value').eq('key', 'grade_tables_settings').single();
+                    if(data && data.value) {
+                        const cfg = data.value;
+                        document.getElementById('maxTable1').value = cfg.t1 || 3;
+                        document.getElementById('maxTable2').value = cfg.t2 || 5;
+                        document.getElementById('maxTable3').value = cfg.t3 || 7;
+                        document.getElementById('maxTable4').value = cfg.t4 || 9;
+                        document.getElementById('maxTable5').value = cfg.t5 || 12;
+                        document.getElementById('maxTable6').value = cfg.t6 || 12;
+                    }
                 }
             } catch (e) {}
 
@@ -262,18 +269,40 @@
             } catch (e) {}
         }
 
+        // دالة الحفظ المزدوجة والمزامنة لضمان التحديث في الجدولين معاً
         async function saveGradeLevelsSettings() {
-            const config = {
-                t1: parseInt(document.getElementById('maxTable1').value) || 3,
-                t2: parseInt(document.getElementById('maxTable2').value) || 5,
-                t3: parseInt(document.getElementById('maxTable3').value) || 7,
-                t4: parseInt(document.getElementById('maxTable4').value) || 9,
-                t5: parseInt(document.getElementById('maxTable5').value) || 12,
-                t6: parseInt(document.getElementById('maxTable6').value) || 12
-            };
-            const { error } = await supabaseClient.from('game_settings').upsert([{ key: 'grade_tables_settings', value: config }]);
-            if(error) alert('خطأ: ' + error.message);
-            else alert('✅ تم حفظ مستويات جداول الضرب لكل صف بنجاح!');
+            const t1 = parseInt(document.getElementById('maxTable1').value) || 3;
+            const t2 = parseInt(document.getElementById('maxTable2').value) || 5;
+            const t3 = parseInt(document.getElementById('maxTable3').value) || 7;
+            const t4 = parseInt(document.getElementById('maxTable4').value) || 9;
+            const t5 = parseInt(document.getElementById('maxTable5').value) || 12;
+            const t6 = parseInt(document.getElementById('maxTable6').value) || 12;
+
+            // 1. التحديث في جدول stage_configs (الذي تعتمد عليه الألعاب)
+            const stageConfigsArray = [
+                { stage: 1, max_table: t1 },
+                { stage: 2, max_table: t2 },
+                { stage: 3, max_table: t3 },
+                { stage: 4, max_table: t4 },
+                { stage: 5, max_table: t5 },
+                { stage: 6, max_table: t6 }
+            ];
+
+            const { error: err1 } = await supabaseClient
+                .from('stage_configs')
+                .upsert(stageConfigsArray, { onConflict: ['stage'] });
+
+            // 2. التحديث في جدول game_settings (للمزامنة مع المفتاح الاحتياطي)
+            const configObj = { t1, t2, t3, t4, t5, t6 };
+            const { error: err2 } = await supabaseClient
+                .from('game_settings')
+                .upsert([{ key: 'grade_tables_settings', value: configObj }]);
+
+            if(err1 || err2) {
+                alert('⚠️ حدث خطأ أثناء المزامنة: ' + (err1?.message || err2?.message));
+            } else {
+                alert('✅ تم حفظ ومزامنة مستويات جداول الضرب في الجدولين (stage_configs & game_settings) بنجاح!');
+            }
         }
 
         async function saveRocketSettings() {
