@@ -787,7 +787,6 @@
             tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: #64748b;">جاري تحديث لوحة الشرف...</td></tr>`;
 
             try {
-                // استخدام اسم العمود الصحيح 'game_time' بدلاً من weekly_points لتوافق جدول Supabase
                 const insertPayload = {
                     student_name: studentData.name, 
                     cls: String(studentData.cls || ''), 
@@ -796,12 +795,8 @@
                 };
 
                 const { error: insertError } = await supabaseClient.from('snake_scores').insert([insertPayload]);
-                if (insertError) {
-                    console.error("Supabase Insert Error:", insertError);
-                    throw insertError;
-                }
+                if (insertError) throw insertError;
                 
-                // جلب أعلى النتائج للوحة الشرف
                 const { data: topScores, error: fetchError } = await supabaseClient.from('snake_scores')
                     .select('*')
                     .order('points', { ascending: false })
@@ -836,11 +831,36 @@
             }
         }
 
+        // إغلاق ثغرة تكرار الضغط المستمر على زر Enter أو الأرقام خارج نافذة السؤال
         document.addEventListener('keydown', (e) => {
-            if (document.getElementById('keypadArea').classList.contains('hidden')) return;
-            if (e.key >= '0' && e.key <= '9') appendKey(e.key);
-            else if (e.key === 'Backspace') clearKey();
-            else if (e.key === 'Enter') submitKeypadAnswer();
+            const qCard = document.getElementById('questionCard');
+            const isQuestionActive = qCard && !qCard.classList.contains('hidden');
+
+            if (!isQuestionActive) {
+                // إذا لم يكن السؤال ظاهراً، نمنع أي تفاعل من لوحة المفاتيح لتجنب الثغرات
+                if (['Enter', 'Backspace', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].includes(e.key)) {
+                    e.preventDefault();
+                }
+                return;
+            }
+
+            const keypadArea = document.getElementById('keypadArea');
+            const isKeypadActive = keypadArea && !keypadArea.classList.contains('hidden');
+
+            if (e.key === 'Enter') {
+                if (isKeypadActive) {
+                    submitKeypadAnswer();
+                }
+                e.preventDefault();
+            } else if (e.key >= '0' && e.key <= '9') {
+                if (isKeypadActive) {
+                    appendKey(e.key);
+                }
+            } else if (e.key === 'Backspace') {
+                if (isKeypadActive) {
+                    clearKey();
+                }
+            }
         });
     </script>
 </body>
