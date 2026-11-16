@@ -257,15 +257,13 @@
             wrongPenalty: 20,
             ladderBonus: 100,
             snakePenalty: 50,
-            questionTypes: ['product', 'missing_factor'] // أنواع الأسئلة من لوحة المدير
+            questionTypes: ['product', 'missing_factor']
         };
 
-        let studentMaxTable = 12; // القيمة الافتراضية
+        let studentMaxTable = 12;
 
-        // دالة جلب الإعدادات المحدثة مباشرة من جدول game_settings و stage_configs في سحابة Supabase
         async function loadSnakeSettings() {
             try {
-                // 1. جلب إعدادات اللعبة العامة من لوحة المدير
                 const { data: settingsData } = await supabaseClient.from('game_settings').select('value').eq('key', 'snake_game_settings').single();
                 if (settingsData && settingsData.value) {
                     snakeSettings = { ...snakeSettings, ...settingsData.value };
@@ -275,10 +273,9 @@
                     }
                 }
 
-                // 2. جلب أقصى جدول ضرب مسموح به لصف الطالب من جدول stage_configs
                 if (studentData && studentData.cls) {
                     let clsVal = studentData.cls;
-                    let stageNum = 5; // افتراضي
+                    let stageNum = 5;
                     if (typeof clsVal === 'number') {
                         stageNum = clsVal;
                     } else {
@@ -494,7 +491,6 @@
             gameTime = 0;
             isProcessingMove = false;
             
-            // تحميل الإعدادات المحدثة من السحابة قبل البدء
             await loadSnakeSettings();
             generateBoardHazards();
             buildBoardUI();
@@ -561,7 +557,6 @@
             document.getElementById('diceSection').classList.add('hidden');
             document.getElementById('questionCard').classList.remove('hidden');
 
-            // تحديد نوع الأسئلة بناءً على إعدادات لوحة المدير (questionTypes)
             let allowedTypes = snakeSettings.questionTypes || ['product', 'missing_factor'];
             let chosenType = allowedTypes[Math.floor(Math.random() * allowedTypes.length)];
             let isProduct = (chosenType === 'product');
@@ -662,7 +657,6 @@
                 playAudioEffect('correct');
                 confetti({ particleCount: 40, spread: 50, origin: { y: 0.6 } });
                 
-                // احتساب النقاط وتحديثها فوراً في الـ HUD
                 score += (parseInt(snakeSettings.correctPoints) || 50);
                 updatePlayerToken();
                 
@@ -810,6 +804,7 @@
                         let rtimeStr = `${String(rmins).padStart(2, '0')}:${String(rsecs).padStart(2, '0')}`;
                         
                         let tr = document.createElement('tr');
+                        // الترتيب الصحيح للخلايا مطابقة تماماً لترتيب الترويسة (البطل، النقاط، الوقت)
                         tr.innerHTML = `<td>${row.student_name}</td><td>⭐ ${toArabicNum(row.points)}</td><td>⏱️ ${toArabicNum(rtimeStr)}</td>`;
                         tbody.appendChild(tr);
                     });
