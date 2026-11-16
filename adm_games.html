@@ -53,7 +53,7 @@
             <h2>إعدادات الألعاب ومستويات جداول الضرب 🎮</h2>
             <p style="color: #646f79; margin-bottom: 20px;">من هنا يمكنك التحكم في مستويات صعوبة الأسئلة، نطاق جداول الضرب لكل مرحلة صفية، وأوقات الألعاب ونقاطها.</p>
 
-            <!-- 1. إعدادات نطاق الجداول لكل مرحلة صفية (مزامنة مزدوجة) -->
+            <!-- 1. إعدادات نطاق الجداول لكل مرحلة صفية -->
             <div class="game-sub-section">
                 <h3>📚 أقصى جدول ضرب مسموح لكل مرحلة دراسية</h3>
                 <div class="form-row">
@@ -62,7 +62,7 @@
                     <div class="form-group"><label>الصف الثالث (أقصى رقم للضرب):</label><input type="number" id="maxTable3" value="7" min="1" max="12"></div>
                 </div>
                 <div class="form-row">
-                    <div class="form-group"><label>الصف الرابع (أقصى رقم للضرب):</label><input type="number" id="maxTable4" value="9" min="1" max="12"></div>
+                    <div class="form-group"><label>الصف الرابع (أقصى رقم للضرب):</label><input type="number" id="maxTable4" value="10" min="1" max="12"></div>
                     <div class="form-group"><label>الصف الخامس (أقصى رقم للضرب):</label><input type="number" id="maxTable5" value="12" min="1" max="12"></div>
                     <div class="form-group"><label>الصف السادس (أقصى رقم للضرب):</label><input type="number" id="maxTable6" value="12" min="1" max="12"></div>
                 </div>
@@ -186,29 +186,22 @@
         });
 
         async function loadAllGameSettings() {
-            // 1. مستويات الجداول من stage_configs أو game_settings
+            // 1. جلب مستويات الجداول من stage_configs مباشرة
             try {
                 const { data: stageData } = await supabaseClient.from('stage_configs').select('*');
                 if (stageData && stageData.length > 0) {
                     stageData.forEach(row => {
-                        let inputEl = document.getElementById(`maxTable${row.stage}`);
-                        if (inputEl) inputEl.value = row.max_table;
+                        const inputEl = document.getElementById(`maxTable${row.stage}`);
+                        if (inputEl) {
+                            inputEl.value = row.max_table;
+                        }
                     });
-                } else {
-                    const { data } = await supabaseClient.from('game_settings').select('value').eq('key', 'grade_tables_settings').single();
-                    if(data && data.value) {
-                        const cfg = data.value;
-                        document.getElementById('maxTable1').value = cfg.t1 || 3;
-                        document.getElementById('maxTable2').value = cfg.t2 || 5;
-                        document.getElementById('maxTable3').value = cfg.t3 || 7;
-                        document.getElementById('maxTable4').value = cfg.t4 || 9;
-                        document.getElementById('maxTable5').value = cfg.t5 || 12;
-                        document.getElementById('maxTable6').value = cfg.t6 || 12;
-                    }
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error("Error loading stage configs:", e);
+            }
 
-            // 2. الصواريخ
+            // 2. إعدادات الصواريخ
             try {
                 const { data } = await supabaseClient.from('game_settings').select('value').eq('key', 'rocket_settings').single();
                 if(data && data.value) {
@@ -269,39 +262,26 @@
             } catch (e) {}
         }
 
-        // دالة الحفظ المزدوجة والمزامنة الفورية لجدولي stage_configs و game_settings
+        // دالة حفظ وتحديث مستويات الصفوف مباشرة في جدول stage_configs
         async function saveGradeLevelsSettings() {
-            const t1 = parseInt(document.getElementById('maxTable1').value) || 3;
-            const t2 = parseInt(document.getElementById('maxTable2').value) || 5;
-            const t3 = parseInt(document.getElementById('maxTable3').value) || 7;
-            const t4 = parseInt(document.getElementById('maxTable4').value) || 9;
-            const t5 = parseInt(document.getElementById('maxTable5').value) || 12;
-            const t6 = parseInt(document.getElementById('maxTable6').value) || 12;
-
-            const stageConfigsArray = [
-                { stage: 1, max_table: t1 },
-                { stage: 2, max_table: t2 },
-                { stage: 3, max_table: t3 },
-                { stage: 4, max_table: t4 },
-                { stage: 5, max_table: t5 },
-                { stage: 6, max_table: t6 }
+            const configsToSave = [
+                { stage: 1, max_table: parseInt(document.getElementById('maxTable1').value) || 3 },
+                { stage: 2, max_table: parseInt(document.getElementById('maxTable2').value) || 5 },
+                { stage: 3, max_table: parseInt(document.getElementById('maxTable3').value) || 7 },
+                { stage: 4, max_table: parseInt(document.getElementById('maxTable4').value) || 10 },
+                { stage: 5, max_table: parseInt(document.getElementById('maxTable5').value) || 12 },
+                { stage: 6, max_table: parseInt(document.getElementById('maxTable6').value) || 12 }
             ];
 
-            // 1. الحفظ في stage_configs
-            const { error: err1 } = await supabaseClient
+            const { error } = await supabaseClient
                 .from('stage_configs')
-                .upsert(stageConfigsArray, { onConflict: ['stage'] });
+                .upsert(configsToSave, { onConflict: ['stage'] });
 
-            // 2. الحفظ في game_settings للمزامنة الاحتياطية
-            const configObj = { t1, t2, t3, t4, t5, t6 };
-            const { error: err2 } = await supabaseClient
-                .from('game_settings')
-                .upsert([{ key: 'grade_tables_settings', value: configObj }]);
-
-            if(err1 || err2) {
-                alert('⚠️ حدث خطأ أثناء المزامنة: ' + (err1?.message || err2?.message));
+            if(error) {
+                alert('⚠️ خطأ أثناء الحفظ: ' + error.message);
             } else {
-                alert('✅ تم حفظ ومزامنة مستويات جداول الضرب في الجدولين بنجاح!');
+                alert('✅ تم حفظ وتحديث مستويات جداول الضرب في السحابة بنجاح!');
+                loadAllGameSettings();
             }
         }
 
