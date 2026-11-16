@@ -201,7 +201,7 @@
                 console.error("Error loading stage configs:", e);
             }
 
-            // 2. إعدادات الصواريخ
+            // 2. إعدادات الصواريخ (شاملة questionType)
             try {
                 const { data } = await supabaseClient.from('game_settings').select('value').eq('key', 'rocket_settings').single();
                 if(data && data.value) {
@@ -285,6 +285,7 @@
             }
         }
 
+        // دالة حفظ إعدادات الصواريخ (محدثة لتتضمن questionType)
         async function saveRocketSettings() {
             const isProd = document.getElementById('chkRocketProd').checked;
             const isMiss = document.getElementById('chkRocketMiss').checked;
@@ -306,7 +307,7 @@
             };
             const { error } = await supabaseClient.from('game_settings').upsert([{ key: 'rocket_settings', value: settings }]);
             if(error) alert('خطأ: ' + error.message);
-            else alert('✅ تم حفظ إعدادات لعبة الصواريخ بنجاح!');
+            else alert('✅ تم حفظ إعدادات لعبة الصواريخ مع نوع الأسئلة بنجاح!');
         }
 
         async function saveGoldMineSettings() {
