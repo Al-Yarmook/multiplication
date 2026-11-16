@@ -186,7 +186,7 @@
         });
 
         async function loadAllGameSettings() {
-            // 1. مستويات الجداول (محاولة القراءة من stage_configs أولاً، وإذا لم توجد من game_settings)
+            // 1. مستويات الجداول من stage_configs أو game_settings
             try {
                 const { data: stageData } = await supabaseClient.from('stage_configs').select('*');
                 if (stageData && stageData.length > 0) {
@@ -269,7 +269,7 @@
             } catch (e) {}
         }
 
-        // دالة الحفظ المزدوجة والمزامنة لضمان التحديث في الجدولين معاً
+        // دالة الحفظ المزدوجة والمزامنة الفورية لجدولي stage_configs و game_settings
         async function saveGradeLevelsSettings() {
             const t1 = parseInt(document.getElementById('maxTable1').value) || 3;
             const t2 = parseInt(document.getElementById('maxTable2').value) || 5;
@@ -278,7 +278,6 @@
             const t5 = parseInt(document.getElementById('maxTable5').value) || 12;
             const t6 = parseInt(document.getElementById('maxTable6').value) || 12;
 
-            // 1. التحديث في جدول stage_configs (الذي تعتمد عليه الألعاب)
             const stageConfigsArray = [
                 { stage: 1, max_table: t1 },
                 { stage: 2, max_table: t2 },
@@ -288,11 +287,12 @@
                 { stage: 6, max_table: t6 }
             ];
 
+            // 1. الحفظ في stage_configs
             const { error: err1 } = await supabaseClient
                 .from('stage_configs')
                 .upsert(stageConfigsArray, { onConflict: ['stage'] });
 
-            // 2. التحديث في جدول game_settings (للمزامنة مع المفتاح الاحتياطي)
+            // 2. الحفظ في game_settings للمزامنة الاحتياطية
             const configObj = { t1, t2, t3, t4, t5, t6 };
             const { error: err2 } = await supabaseClient
                 .from('game_settings')
@@ -301,7 +301,7 @@
             if(err1 || err2) {
                 alert('⚠️ حدث خطأ أثناء المزامنة: ' + (err1?.message || err2?.message));
             } else {
-                alert('✅ تم حفظ ومزامنة مستويات جداول الضرب في الجدولين (stage_configs & game_settings) بنجاح!');
+                alert('✅ تم حفظ ومزامنة مستويات جداول الضرب في الجدولين بنجاح!');
             }
         }
 
