@@ -28,8 +28,38 @@
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
         .form-group { flex: 1; min-width: 250px; text-align: right; }
         label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
-        input, select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Cairo'; }
+        input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Cairo'; }
         .danger-zone { border: 2px dashed #d32f2f; padding: 25px; border-radius: 12px; background: #ffebee; margin-bottom: 20px; }
+        
+        /* تصميم أزرار اختيار الألعاب التفاعلية */
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 15px; }
+        .game-toggle-btn {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            color: #475569;
+            padding: 12px 15px;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .game-toggle-btn:hover { border-color: #d32f2f; color: #d32f2f; }
+        .game-toggle-btn.selected {
+            background: #ffebee;
+            border-color: #d32f2f;
+            color: #d32f2f;
+            box-shadow: 0 2px 6px rgba(211, 47, 47, 0.15);
+        }
+        .select-all-container { margin-bottom: 15px; display: flex; justify-content: flex-start; }
+        .btn-outline { background: transparent; border: 2px solid #64748b; color: #475569; padding: 6px 14px; border-radius: 8px; font-family: 'Cairo'; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-outline:hover { background: #64748b; color: white; }
+
         footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
     </style>
 </head>
@@ -56,25 +86,33 @@
                 </div>
             </div>
 
-            <!-- 1. تصفير نتائج الألعاب (مع خيار تحديد لعبة معينة أو الكل) -->
+            <!-- 1. تصفير نتائج الألعاب (اختيار متعدد عبر الأزرار) -->
             <div class="danger-zone">
                 <h3 style="color: #d32f2f; margin-top:0;">⚠️ تصفير نتائج ولوحات صدارة الألعاب</h3>
-                <p style="font-size: 13px; color: #555;">يمكنك اختيار لعبة محددة لتصفير نتائجها فقط، أو اختيار "جميع الألعاب" لمسح كافة النتائج دفعة واحدة.</p>
+                <p style="font-size: 13px; color: #555;">انقر على الألعاب المطلوبة لتحديدها (يمكنك اختيار لعبة واحدة أو عدة ألعاب معاً)، ثم اضغط على زر التصفير.</p>
                 
-                <div class="form-row" style="max-width: 450px; margin-bottom: 15px;">
-                    <div class="form-group">
-                        <label for="targetGameSelect">حدد اللعبة المطلوبة:</label>
-                        <select id="targetGameSelect">
-                            <option value="all">🌐 تصفير جميع الألعاب دفعة واحدة</option>
-                            <option value="rocket_scores">🚀 لعبة الفضاء (الصواريخ)</option>
-                            <option value="goldmine_scores">⛏️ لعبة منجم الذهب</option>
-                            <option value="mountain_scores">⛰️ لعبة الصعود نحو القمة</option>
-                            <option value="snake_scores">🐍 لعبة الحية</option>
-                        </select>
-                    </div>
+                <!-- زر تحديد الكل -->
+                <div class="select-all-container">
+                    <button type="button" class="btn-outline" id="selectAllBtn" onclick="toggleSelectAll()">✅ تحديد الكل</button>
                 </div>
 
-                <button class="btn btn-red" onclick="resetScoresOnly()">تصفير النتائج المحددة الآن 🗑️</button>
+                <!-- شبكة أزرار الألعاب -->
+                <div class="games-grid">
+                    <button type="button" class="game-toggle-btn" data-table="rocket_scores" onclick="toggleGameButton(this)">
+                        🚀 لعبة الفضاء
+                    </button>
+                    <button type="button" class="game-toggle-btn" data-table="goldmine_scores" onclick="toggleGameButton(this)">
+                        ⛏️ منجم الذهب
+                    </button>
+                    <button type="button" class="game-toggle-btn" data-table="mountain_scores" onclick="toggleGameButton(this)">
+                        ⛰️ الصعود نحو القمة
+                    </button>
+                    <button type="button" class="game-toggle-btn" data-table="snake_scores" onclick="toggleGameButton(this)">
+                        🐍 لعبة الحية
+                    </button>
+                </div>
+
+                <button class="btn btn-red" onclick="resetScoresOnly()">تصفير النتائج للألعاب المحددة الآن 🗑️</button>
             </div>
 
             <!-- 2. تصفير وحذف جميع الطلاب (مناسب لبداية العام الدراسي) -->
@@ -125,39 +163,75 @@
             return true;
         }
 
-        // تصفير النتائج بناءً على الخيار المحدد في القائمة
+        // دالة تبديل حالة التحديد للزر الفردي
+        function toggleGameButton(btn) {
+            btn.classList.toggle('selected');
+            updateSelectAllButtonState();
+        }
+
+        // دالة تحديد الكل أو إلغائه
+        function toggleSelectAll() {
+            const buttons = document.querySelectorAll('.game-toggle-btn');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const allSelected = Array.from(buttons).every(btn => btn.classList.contains('selected'));
+
+            buttons.forEach(btn => {
+                if (allSelected) {
+                    btn.classList.remove('selected');
+                } else {
+                    btn.classList.add('selected');
+                }
+            });
+            updateSelectAllButtonState();
+        }
+
+        // تحديث نص وشكل زر تحديد الكل بناءً على الحالة الحالية
+        function updateSelectAllButtonState() {
+            const buttons = document.querySelectorAll('.game-toggle-btn');
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const allSelected = Array.from(buttons).every(btn => btn.classList.contains('selected'));
+            
+            if (allSelected) {
+                selectAllBtn.textContent = '❌ إلغاء تحديد الكل';
+            } else {
+                selectAllBtn.textContent = '✅ تحديد الكل';
+            }
+        }
+
+        // تصفير النتائج للألعاب المحددة فقط
         async function resetScoresOnly() {
             if(!verifyPassword()) return;
-            
-            const selectedGame = document.getElementById('targetGameSelect').value;
-            let confirmMsg = '';
 
-            if(selectedGame === 'all') {
-                confirmMsg = '⚠️ تحذير نهائي: هل أنت متأكد تماماً من مسح كافة نتائج ونقاط جميع الألعاب؟';
-            } else {
-                confirmMsg = `⚠️ تحذير: هل أنت متأكد من مسح نتائج اللعبة المحددة فقط (${selectedGame})؟`;
+            // جمع كافة الألعاب المحددة
+            const selectedButtons = document.querySelectorAll('.game-toggle-btn.selected');
+            
+            if(selectedButtons.length === 0) {
+                alert('الرجاء اختيار لعبة واحدة على الأقل لتصفير نتائجها.');
+                return;
             }
 
-            if(confirm(confirmMsg)) {
+            if(confirm(`⚠️ تحذير: هل أنت متأكد تماماً من تصفير نتائج (${selectedButtons.length}) ألعاب محددة؟`)) {
                 let hasError = false;
 
-                if(selectedGame === 'all') {
-                    const { error1 } = await supabaseClient.from('rocket_scores').delete().neq('id', 0);
-                    const { error2 } = await supabaseClient.from('goldmine_scores').delete().neq('id', 0);
-                    const { error3 } = await supabaseClient.from('mountain_scores').delete().neq('id', 0);
-                    const { error4 } = await supabaseClient.from('snake_scores').delete().neq('id', 0);
-                    if(error1 || error2 || error3 || error4) hasError = true;
-                } else {
-                    // تصفير الجدول المحدد فقط
-                    const { error } = await supabaseClient.from(selectedGame).delete().neq('id', 0);
-                    if(error) hasError = true;
+                // تنفيذ الحذف لكل لعبة تم اختيارها بالتتابع
+                for(let btn of selectedButtons) {
+                    const tableName = btn.getAttribute('data-table');
+                    const { error } = await supabaseClient.from(tableName).delete().neq('id', 0);
+                    if(error) {
+                        hasError = true;
+                        console.error(`Error resetting ${tableName}:`, error.message);
+                    }
                 }
                 
                 if(hasError) {
-                    alert('حدث خطأ أثناء تصفير النتائج بالسحابة.');
+                    alert('حدث خطأ أثناء تصفير بعض النتائج بالسحابة.');
                 } else {
-                    alert('✅ تمت عملية التصفير بنجاح!');
+                    alert('✅ تمت عملية تصفير الألعاب المحددة بنجاح!');
                     document.getElementById('confirmResetPass').value = '';
+                    
+                    // إلغاء تحديد الأزرار بعد النجاح
+                    selectedButtons.forEach(btn => btn.classList.remove('selected'));
+                    updateSelectAllButtonState();
                 }
             }
         }
