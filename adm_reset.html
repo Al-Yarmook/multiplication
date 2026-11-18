@@ -28,7 +28,7 @@
         .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; }
         .form-group { flex: 1; min-width: 250px; text-align: right; }
         label { display: block; margin-bottom: 5px; font-weight: 600; color: #333; }
-        input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Cairo'; }
+        input, select { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Cairo'; }
         .danger-zone { border: 2px dashed #d32f2f; padding: 25px; border-radius: 12px; background: #ffebee; margin-bottom: 20px; }
         footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
     </style>
@@ -56,11 +56,25 @@
                 </div>
             </div>
 
-            <!-- 1. تصفير نتائج الألعاب فقط -->
+            <!-- 1. تصفير نتائج الألعاب (مع خيار تحديد لعبة معينة أو الكل) -->
             <div class="danger-zone">
-                <h3 style="color: #d32f2f; margin-top:0;">⚠️ تصفير نتائج ولوحات صدارة الألعاب فقط</h3>
-                <p style="font-size: 13px; color: #555;">سيتم حذف كافة درجات ونقاط الطلاب في جميع الألعاب (الصواريخ، منجم الذهب، وغيرها) مع إبقاء أسماء الطلاب المسجلين في النظام.</p>
-                <button class="btn btn-red" onclick="resetScoresOnly()">تصفير لوحة الصدارة والنتائج الآن 🗑️</button>
+                <h3 style="color: #d32f2f; margin-top:0;">⚠️ تصفير نتائج ولوحات صدارة الألعاب</h3>
+                <p style="font-size: 13px; color: #555;">يمكنك اختيار لعبة محددة لتصفير نتائجها فقط، أو اختيار "جميع الألعاب" لمسح كافة النتائج دفعة واحدة.</p>
+                
+                <div class="form-row" style="max-width: 450px; margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label for="targetGameSelect">حدد اللعبة المطلوبة:</label>
+                        <select id="targetGameSelect">
+                            <option value="all">🌐 تصفير جميع الألعاب دفعة واحدة</option>
+                            <option value="rocket_scores">🚀 لعبة الفضاء (الصواريخ)</option>
+                            <option value="goldmine_scores">⛏️ لعبة منجم الذهب</option>
+                            <option value="mountain_scores">⛰️ لعبة الصعود نحو القمة</option>
+                            <option value="snake_scores">🐍 لعبة الحية</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button class="btn btn-red" onclick="resetScoresOnly()">تصفير النتائج المحددة الآن 🗑️</button>
             </div>
 
             <!-- 2. تصفير وحذف جميع الطلاب (مناسب لبداية العام الدراسي) -->
@@ -111,18 +125,38 @@
             return true;
         }
 
-        // تصفير نتائج الألعاب
+        // تصفير النتائج بناءً على الخيار المحدد في القائمة
         async function resetScoresOnly() {
             if(!verifyPassword()) return;
             
-            if(confirm('⚠️ تحذير نهائي: هل أنت متأكد تماماً من مسح كافة نتائج ونقاط الألعاب؟')) {
-                const { error1 } = await supabaseClient.from('rocket_scores').delete().neq('id', 0);
-                const { error2 } = await supabaseClient.from('goldmine_scores').delete().neq('id', 0);
+            const selectedGame = document.getElementById('targetGameSelect').value;
+            let confirmMsg = '';
+
+            if(selectedGame === 'all') {
+                confirmMsg = '⚠️ تحذير نهائي: هل أنت متأكد تماماً من مسح كافة نتائج ونقاط جميع الألعاب؟';
+            } else {
+                confirmMsg = `⚠️ تحذير: هل أنت متأكد من مسح نتائج اللعبة المحددة فقط (${selectedGame})؟`;
+            }
+
+            if(confirm(confirmMsg)) {
+                let hasError = false;
+
+                if(selectedGame === 'all') {
+                    const { error1 } = await supabaseClient.from('rocket_scores').delete().neq('id', 0);
+                    const { error2 } = await supabaseClient.from('goldmine_scores').delete().neq('id', 0);
+                    const { error3 } = await supabaseClient.from('mountain_scores').delete().neq('id', 0);
+                    const { error4 } = await supabaseClient.from('snake_scores').delete().neq('id', 0);
+                    if(error1 || error2 || error3 || error4) hasError = true;
+                } else {
+                    // تصفير الجدول المحدد فقط
+                    const { error } = await supabaseClient.from(selectedGame).delete().neq('id', 0);
+                    if(error) hasError = true;
+                }
                 
-                if(error1 || error2) {
+                if(hasError) {
                     alert('حدث خطأ أثناء تصفير النتائج بالسحابة.');
                 } else {
-                    alert('✅ تم تصفير كافة نتائج الألعاب ولوحة الصدارة بنجاح!');
+                    alert('✅ تمت عملية التصفير بنجاح!');
                     document.getElementById('confirmResetPass').value = '';
                 }
             }
