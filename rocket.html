@@ -212,6 +212,28 @@
         let score = 0, timeLeft = customSettings.gameTime, streak = 0;
         let timerInterval = null, gameLoopInterval = null;
         let currentCorrectAnswer = 0, maxTable = 10, asteroids = [];
+        let currentFactor1 = 1, currentFactor2 = 1;
+        let correctCount = 0, wrongCount = 0, totalQuestions = 0;
+        let tableStatsMap = {};
+
+        function resetSessionTracking() {
+            correctCount = 0;
+            wrongCount = 0;
+            totalQuestions = 0;
+            tableStatsMap = {};
+            for (let t = 1; t <= 12; t++) {
+                tableStatsMap[t] = { correct: 0, wrong: 0 };
+            }
+        }
+
+        function recordTableOutcome(f1, f2, isCorrect) {
+            const largerTable = Math.max(parseInt(f1, 10) || 1, parseInt(f2, 10) || 1);
+            if (largerTable >= 1 && largerTable <= 12) {
+                if (!tableStatsMap[largerTable]) tableStatsMap[largerTable] = { correct: 0, wrong: 0 };
+                if (isCorrect) tableStatsMap[largerTable].correct += 1;
+                else tableStatsMap[largerTable].wrong += 1;
+            }
+        }
 
         function startTheGameSession() {
             document.getElementById('instructionsModal').classList.add('hidden');
@@ -252,6 +274,7 @@
 
         function startGameEngine() {
             score = 0; timeLeft = customSettings.gameTime; streak = 0;
+            resetSessionTracking();
             updateHUD();
             document.getElementById('gameOverModal').classList.add('hidden');
             
@@ -294,6 +317,8 @@
 
             let num1 = Math.floor(Math.random() * maxTable) + 1;
             let num2 = Math.floor(Math.random() * 9) + 1;
+            currentFactor1 = num1;
+            currentFactor2 = num2;
             let total = num1 * num2;
 
             let allowedTypes = customSettings.questionTypes || ['product', 'missing_factor'];
@@ -461,7 +486,10 @@
         }
 
         function checkAnswer(selectedOpt) {
+            totalQuestions++;
             if (selectedOpt === currentCorrectAnswer) {
+                correctCount++;
+                recordTableOutcome(currentFactor1, currentFactor2, true);
                 playSound('correct');
                 score += customSettings.correctPoints + (streak * 10);
                 streak++;
@@ -472,11 +500,70 @@
                 }
                 generateNewWave();
             } else {
+                wrongCount++;
+                recordTableOutcome(currentFactor1, currentFactor2, false);
                 playSound('wrong');
                 score = Math.max(0, score - customSettings.wrongPenalty);
                 streak = 0;
             }
             updateHUD();
+        }
+
+        async function saveSessionAndTableStats() {
+            const cprVal = String(studentData.cpr || studentData.id || studentData.name);
+            const clsVal = String(studentData.cls || '');
+            const nameVal = String(studentData.name || '');
+
+            try {
+                const { data: sessionRow, error: sessErr } = await supabaseClient
+                    .from('student_sessions')
+                    .insert([{
+                        cpr: cprVal,
+                        student_name: nameVal,
+                        cls: clsVal,
+                        game_key: 'rocket',
+                        correct_count: correctCount,
+                        wrong_count: wrongCount,
+                        total_questions: totalQuestions,
+                        score: score
+                    }])
+                    .select('id')
+                    .single();
+
+                if (sessErr) {
+                    console.error('خطأ في حفظ جلسة الصواريخ:', sessErr);
+                    return;
+                }
+
+                const sessionId = sessionRow ? sessionRow.id : null;
+                const statsRows = [];
+                for (let t = 1; t <= 12; t++) {
+                    const st = tableStatsMap[t] || { correct: 0, wrong: 0 };
+                    if (st.correct > 0 || st.wrong > 0) {
+                        statsRows.push({
+                            session_id: sessionId,
+                            cpr: cprVal,
+                            student_name: nameVal,
+                            cls: clsVal,
+                            game_key: 'rocket',
+                            multiplication_table: t,
+                            correct_count: st.correct,
+                            wrong_count: st.wrong
+                        });
+                    }
+                }
+
+                if (statsRows.length > 0) {
+                    const { error: statsErr } = await supabaseClient
+                        .from('student_table_stats')
+                        .insert(statsRows);
+                    if (statsErr) {
+                        console.error('خطأ في حفظ إحصاءات الجداول:', statsErr);
+                    }
+                }
+            } catch (e) {
+                console.error('خطأ أثناء حفظ بيانات الجلسة والأخطاء:', e);
+            }
         }
 
         async function endGame() {
@@ -493,6 +580,7 @@
                 }]);
 
                 if (error) throw error;
+                await saveSessionAndTableStats();
                 document.getElementById('saveStatus').textContent = '✅ تم حفظ النتيجة بنجاح في السحابة!';
                 loadLeaderboardInModal();
             } catch (err) {
