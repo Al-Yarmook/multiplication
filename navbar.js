@@ -25,6 +25,7 @@ document.addEventListener("DOMContentLoaded", function() {
         { href: "adm_badges.html", title: "إعدادات الأوسمة", icon: "🏅", allowedFor: ["admin", "supervisor"] },
         { href: "adm_scores.html", title: "درجات الطلاب", icon: "📊", allowedFor: ["admin", "supervisor", "teacher"] },
         { href: "adm_reports.html", title: "التقارير", icon: "📈", allowedFor: ["admin", "supervisor", "teacher"] },
+        { href: "student_followup.html", title: "متابعة الطلاب", icon: "🎯", allowedFor: ["admin", "supervisor", "teacher"] },
         { href: "adm_reset.html", title: "تصفير النتائج", icon: "⚙️", allowedFor: ["admin"] },
         { href: "adm_profile.html", title: "بياناتي الشخصية", icon: "👤", allowedFor: ["admin", "supervisor", "teacher"] }
     ];
