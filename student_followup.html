@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة فرسان جدول الضرب - متابعة الطلاب</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #d81b60;
+            --primary-hover: #ad1457;
+            --bg: #f4f7f6;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+        }
+        * { box-sizing: border-box; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .container { max-width: 1200px; margin: 0 auto; width: 100%; }
+
+        header { background: white; padding: 15px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-top: 4px solid var(--primary); flex-wrap: wrap; gap: 10px; }
+        h1 { color: var(--primary); margin: 0; font-size: 22px; font-weight: 900; }
+
+        .section-card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .section-card h2 { color: var(--primary); font-size: 17px; margin-bottom: 15px; font-weight: 800; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; }
+
+        .form-row { display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 220px; position: relative; }
+        .form-group label { font-size: 13px; font-weight: bold; color: #475569; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-family: 'Cairo'; font-size: 13px; background: #fff; }
+
+        .sections-picker-box {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            max-height: 130px;
+            overflow-y: auto;
+        }
+        .section-chip {
+            background: #ffffff;
+            border: 1.5px solid #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
+            user-select: none;
+            color: #334155;
+        }
+        .section-chip.selected {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* قائمة منسدلة متعددة لاختيار الطلاب */
+        .multi-dropdown { position: relative; width: 100%; }
+        .multi-dropdown-btn {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            background: #fff;
+            font-family: 'Cairo';
+            font-size: 13px;
+            text-align: right;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #334155;
+        }
+        .multi-dropdown-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            left: 0;
+            background: #fff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            max-height: 220px;
+            overflow-y: auto;
+            z-index: 50;
+            margin-top: 4px;
+        }
+        .multi-dropdown-menu.open { display: block; }
+        .multi-dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .multi-dropdown-item:hover { background: #fdf2f8; }
+        .multi-dropdown-item.checked { background: #fce7f3; color: #831843; font-weight: bold; }
+
+        .options-row {
+            display: flex;
+            gap: 15px;
+            background: #f8fafc;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e1;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        .btn { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; font-family: 'Cairo'; transition: 0.3s; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 14px; }
+        .btn:hover { background: var(--primary-hover); }
+        .btn-dark { background: #334155; }
+        .btn-dark:hover { background: #1e293b; }
+        .btn-red { background: #d32f2f; }
+        .btn-red:hover { background: #b71c1c; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 6px; }
+
+        .report-preview-area { background: white; padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px solid #e2e8f0; overflow-x: auto; }
+
+        .report-single-page {
+            box-sizing: border-box;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 25px;
+            width: 100%;
+            max-width: 100%;
+            display: block;
+        }
+
+        .report-header-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            gap: 5px;
+        }
+        .report-header-right { font-size: 9pt; font-weight: bold; color: #475569; line-height: 1.25; width: 33%; }
+        .report-header-center { text-align: center; width: 34%; }
+        .report-logo { max-height: 24px; display: block; margin: 0 auto 2px auto; object-fit: contain; }
+        .report-title { font-size: 10.5pt; font-weight: 900; color: var(--primary); white-space: nowrap; }
+        .report-header-left { font-size: 9pt; font-weight: bold; color: #475569; text-align: left; line-height: 1.25; width: 33%; }
+
+        .report-meta-bar {
+            display: flex;
+            justify-content: space-between;
+            background: #fdf2f8;
+            padding: 5px 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 9pt;
+            font-weight: bold;
+            color: #831843;
+            border: 1px solid #fbcfe8;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .student-grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+        @media (max-width: 768px) {
+            .student-grid-2col { grid-template-columns: 1fr; }
+        }
+
+        .sub-box {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 10px;
+            background: #fff;
+        }
+        .sub-box h3 {
+            margin: 0 0 6px 0;
+            font-size: 9.5pt;
+            font-weight: 800;
+            color: #0f172a;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 4px;
+        }
+
+        .weakness-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .weak-badge {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 8.5pt;
+            font-weight: bold;
+        }
+        .no-weak-badge {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 8.5pt;
+            font-weight: bold;
+        }
+
+        .table-container { margin-bottom: 10px; width: 100%; overflow-x: auto; }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; min-width: 380px; }
+        .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: center; line-height: 1.2; }
+        .report-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 8.8pt; border-bottom: 2px solid var(--primary); }
+        .report-table tr:nth-child(even) { background-color: #fafaf9; }
+
+        .chart-wrap { position: relative; height: 155px; width: 100%; }
+
+        .footer-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none !important;
+            background: #ffffff;
+            margin-top: 8px;
+            padding-top: 5px;
+            border-top: 1px dashed #cbd5e1 !important;
+        }
+        .footer-table td { border: none !important; padding: 2px; text-align: center; vertical-align: top; width: 20%; background: transparent; }
+        .footer-editable-cell { width: 100%; min-height: 32px; background: transparent; border: none; text-align: center; font-family: 'Cairo'; font-weight: bold; resize: none; outline: none; line-height: 1.15; color: #334155; }
+
+        .hidden { display: none !important; }
+        footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 6mm; }
+            body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
+            header, .section-card:not(#reportOutputCard), .btn-row, .nav-tabs, footer.author-footer, #reportHeaderTitleCard, #admin-nav-container, nav { display: none !important; }
+            .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
+            .report-preview-area { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: transparent !important; }
+            .student-grid-2col { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
+            .chart-wrap { height: 135px !important; }
+
+            .report-single-page {
+                margin: 0 !important;
+                padding: 4mm 2mm !important;
+                border: none !important;
+                border-radius: 0 !important;
+                width: 100% !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+                page-break-after: always !important;
+                break-after: page !important;
+                display: block !important;
+            }
+            .report-single-page:last-of-type {
+                page-break-after: avoid !important;
+                break-after: avoid !important;
+                margin-bottom: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1 id="welcomeTitle">🎯 متابعة الطلاب ونقاط الضعف</h1>
+            <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
+        </header>
+
+        <div id="admin-nav-container"></div>
+
+        <!-- إعدادات الرأس والتذييل المنسوخة من صفحة التقارير -->
+        <div class="section-card hidden" id="adminSettingsCard">
+            <h2>⚙️ إعدادات الترويسة والفوتر الافتراضية (مزامنة سحابية)</h2>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>رفع شعار رأس التقرير:</label>
+                    <input type="file" id="logoUploadInput" accept="image/*" onchange="handleLogoUpload(event)">
+                </div>
+                <div class="form-group">
+                    <label>حجم خط خلايا التذييل:</label>
+                    <select id="footerFontSize" onchange="saveCloudSettings()">
+                        <option value="8pt">صغير جداً (8 نقطة)</option>
+                        <option value="8.5pt" selected>صغير (8.5 نقطة)</option>
+                        <option value="9.5pt">متوسط (9.5 نقطة)</option>
+                        <option value="10.5pt">كبير (10.5 نقطة)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>نص الترويسة (اليمين):</label>
+                    <textarea id="headerRightText" rows="3" oninput="saveCloudSettings()">مملكة البحرين
+وزارة التربية والتعليم
+مدرسة اليرموك الابتدائية للبنين</textarea>
+                </div>
+                <div class="form-group">
+                    <label>نص الترويسة (اليسار):</label>
+                    <textarea id="headerLeftText" rows="3" oninput="saveCloudSettings()">العام الدراسي: 2025-2026
+قسم الرياضيات والعلوم</textarea>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 10px;">
+                <label>محتوى خانات التذييل الـ 5 الافتراضية (تقبل أكثر من سطر):</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 5px;">
+                    <textarea id="foot1" rows="3" placeholder="الخانة 1" oninput="saveCloudSettings()"></textarea>
+                    <textarea id="foot2" rows="3" placeholder="الخانة 2" oninput="saveCloudSettings()"></textarea>
+                    <textarea id="foot3" rows="3" placeholder="الخانة 3" oninput="saveCloudSettings()"></textarea>
+                    <textarea id="foot4" rows="3" placeholder="الخانة 4" oninput="saveCloudSettings()"></textarea>
+                    <textarea id="foot5" rows="3" placeholder="الخانة 5" oninput="saveCloudSettings()"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- حد اعتبار نقاط الضعف للمدير والمشرف فقط -->
+        <div class="section-card hidden" id="weaknessThresholdCard">
+            <h2>🛡️ إعداد حد نقاط الضعف (للمدير والمشرف فقط)</h2>
+            <div class="form-row" style="margin-bottom: 0; align-items: center;">
+                <div class="form-group" style="max-width: 320px;">
+                    <label>عدد الأخطاء المطلوب ليُعتبر الجدول نقطة ضعف (الافتراضي 5 — أكبر من هذا العدد):</label>
+                    <input type="number" id="weaknessThresholdInput" min="1" max="100" value="5" onchange="saveWeaknessThreshold()">
+                </div>
+                <span style="font-size: 12.5px; color: #64748b; font-weight: bold;">
+                    يتم رصد جميع الجداول مع عدد الأخطاء، وأي جدول يتجاوز هذا العدد يُسجل ضمن نقاط الضعف.
+                </span>
+            </div>
+        </div>
+
+        <!-- القسم الأول: تقرير الطالب -->
+        <div class="section-card">
+            <h2>👤 قسم تقرير الطالب (صفحة واحدة لكل طالب)</h2>
+
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label style="margin: 0;">اختر الصف / الصفوف المطلوبة:</label>
+                        <button type="button" class="btn btn-sm btn-dark" onclick="toggleSelectAllSections()">تحديد / إلغاء الكل</button>
+                    </div>
+                    <div id="sectionsPickerBox" class="sections-picker-box"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>مدة الجلسات في التقرير:</label>
+                    <select id="sessionPeriodSelect">
+                        <option value="week" selected>أسبوع (الافتراضي)</option>
+                        <option value="month">شهر</option>
+                        <option value="day">يوم</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>تحديد طالب / طلاب من الصفوف المختارة (قائمة منسدلة):</label>
+                    <div class="multi-dropdown" id="studentDropdownWrapper">
+                        <button type="button" class="multi-dropdown-btn" id="studentDropdownBtn" onclick="toggleStudentDropdown()">
+                            <span id="studentDropdownLabel">جميع طلاب الصفوف المحددة</span>
+                            <span>▾</span>
+                        </button>
+                        <div class="multi-dropdown-menu" id="studentDropdownMenu"></div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>بحث سريع باسم الطالب (كتابة يدوية):</label>
+                    <input type="text" id="studentSearchInput" placeholder="اكتب اسم الطالب للبحث السريع..." oninput="renderStudentDropdown()">
+                </div>
+            </div>
+
+            <div class="form-row" style="margin-bottom: 0; align-items: center;">
+                <div class="options-row">
+                    <label class="checkbox-label"><input type="checkbox" id="optShowTeacher" checked> إظهار اسم المعلم</label>
+                    <label class="checkbox-label"><input type="checkbox" id="optShowDate" checked> إظهار تاريخ التصدير</label>
+                </div>
+                <button class="btn" onclick="generateStudentReports()">⚡ توليد تقارير الطلاب</button>
+            </div>
+        </div>
+
+        <!-- القسم الثاني: المتابعة بالجدول -->
+        <div class="section-card">
+            <h2>📊 قسم المتابعة بالجدول (صفحة منفصلة لكل جدول)</h2>
+
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <label style="margin: 0;">اختر الجدول / الجداول المطلوبة (1 إلى 12):</label>
+                        <button type="button" class="btn btn-sm btn-dark" onclick="toggleSelectAllTables()">تحديد / إلغاء الكل</button>
+                    </div>
+                    <div id="tablesPickerBox" class="sections-picker-box"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>مدة الجلسات للمتابعة بالجدول:</label>
+                    <select id="tableFollowupPeriodSelect">
+                        <option value="week" selected>أسبوع (الافتراضي)</option>
+                        <option value="month">شهر</option>
+                        <option value="day">يوم</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row" style="margin-bottom: 0; align-items: center;">
+                <div class="options-row">
+                    <label class="checkbox-label"><input type="checkbox" id="tblOptShowTeacher" checked> إظهار اسم المعلم</label>
+                    <label class="checkbox-label"><input type="checkbox" id="tblOptShowDate" checked> إظهار تاريخ التصدير</label>
+                </div>
+                <button class="btn" onclick="generateTableFollowupReports()">⚡ توليد متابعة الجداول</button>
+            </div>
+        </div>
+
+        <!-- منطقة عرض وطباعة التقارير -->
+        <div class="section-card hidden" id="reportOutputCard">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;" id="reportHeaderTitleCard">
+                <h2 style="border: none; margin: 0; padding: 0;">معاينة وطباعة التقارير 📄</h2>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn btn-dark" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+                </div>
+            </div>
+            <div class="report-preview-area" id="reportPreviewContent"></div>
+        </div>
+    </div>
+
+    <footer class="author-footer">
+        إعداد أ. صادق القلعاوي | مدرسة اليرموك الابتدائية للبنين 🏫✨
+    </footer>
+
+    <script src="navbar.js"></script>
+
+    <script>
+        let currentUser = null;
+        try { currentUser = JSON.parse(localStorage.getItem('current_staff_user')); } catch (e) {}
+        if (!currentUser) {
+            window.location.href = 'staff.html';
+        }
+
+        let allStudentsList = [];
+        let cloudSections = [];
+        let classTeachersAssignments = [];
+        let teacherAssignedClassesList = [];
+        let selectedSectionsSet = new Set();
+        let selectedStudentCprsSet = new Set();
+        let selectedTablesSet = new Set([2]);
+        let weaknessThreshold = 5;
+        let activeCharts = [];
+
+        let cloudSettings = {
+            logo: '',
+            headerRight: 'مملكة البحرين\nوزارة التربية والتعليم\nمدرسة اليرموك الابتدائية للبنين',
+            headerLeft: 'العام الدراسي: 2025-2026\nقسم الرياضيات والعلوم',
+            foot1: 'إعداد:\nأ. صادق القلعاوي',
+            foot2: 'منسق القسم:\nأ. حسين الصيرفي',
+            foot3: 'المدير المساعد:\nأ. طارق بدوي',
+            foot4: 'المدير المساعد:\nأ. علي ابراهيم',
+            foot5: 'مدير المدرسة:\nأ. عدنان الخيراني',
+            fSize: '8.5pt'
+        };
+
+        function getRoleType() {
+            const roleVal = currentUser ? String(currentUser.role || '').trim().toLowerCase() : 'teacher';
+            if (roleVal === 'admin' || roleVal === 'مدير' || roleVal === 'administrator') return 'admin';
+            if (roleVal === 'supervisor' || roleVal === 'مشرف') return 'supervisor';
+            return 'teacher';
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            initRoleUI();
+            renderTablesPicker();
+            await fetchCloudSettings();
+            await fetchCloudData();
+        });
+
+        function initRoleUI() {
+            const role = getRoleType();
+            const roleAr = role === 'admin' ? 'مدير النظام' : (role === 'supervisor' ? 'مشرف' : 'معلم');
+            document.getElementById('welcomeTitle').textContent = `متابعة الطلاب (${currentUser.name || 'مستخدم'} - ${roleAr})`;
+
+            if (role === 'admin') {
+                document.getElementById('adminSettingsCard').classList.remove('hidden');
+            }
+            if (role === 'admin' || role === 'supervisor') {
+                document.getElementById('weaknessThresholdCard').classList.remove('hidden');
+            }
+        }
+
+        async function fetchCloudSettings() {
+            try {
+                const { data } = await supabaseClient
+                    .from('settings')
+                    .select('*')
+                    .eq('key', 'global_report_settings')
+                    .limit(1);
+
+                if (data && data.length > 0) {
+                    const s = data[0];
+                    cloudSettings.logo = s.logo || '';
+                    if (s.foot1) cloudSettings.foot1 = s.foot1;
+                    if (s.foot2) cloudSettings.foot2 = s.foot2;
+                    if (s.foot3) cloudSettings.foot3 = s.foot3;
+                    if (s.foot4) cloudSettings.foot4 = s.foot4;
+                    if (s.foot5) cloudSettings.foot5 = s.foot5;
+                    if (s.footer_size) cloudSettings.fSize = s.footer_size;
+                    if (s.header_right) cloudSettings.headerRight = s.header_right;
+                    if (s.header_left) cloudSettings.headerLeft = s.header_left;
+                    if (s.weakness_error_threshold !== undefined && s.weakness_error_threshold !== null) {
+                        weaknessThreshold = parseInt(s.weakness_error_threshold, 10) || 5;
+                    }
+                }
+            } catch (err) {
+                console.log('جاري جلب الإعدادات...');
+            }
+
+            document.getElementById('foot1').value = cloudSettings.foot1;
+            document.getElementById('foot2').value = cloudSettings.foot2;
+            document.getElementById('foot3').value = cloudSettings.foot3;
+            document.getElementById('foot4').value = cloudSettings.foot4;
+            document.getElementById('foot5').value = cloudSettings.foot5;
+            document.getElementById('footerFontSize').value = cloudSettings.fSize;
+            document.getElementById('headerRightText').value = cloudSettings.headerRight;
+            document.getElementById('headerLeftText').value = cloudSettings.headerLeft;
+            document.getElementById('weaknessThresholdInput').value = weaknessThreshold;
+        }
+
+        async function saveCloudSettings() {
+            cloudSettings.foot1 = document.getElementById('foot1').value;
+            cloudSettings.foot2 = document.getElementById('foot2').value;
+            cloudSettings.foot3 = document.getElementById('foot3').value;
+            cloudSettings.foot4 = document.getElementById('foot4').value;
+            cloudSettings.foot5 = document.getElementById('foot5').value;
+            cloudSettings.fSize = document.getElementById('footerFontSize').value;
+            cloudSettings.headerRight = document.getElementById('headerRightText').value;
+            cloudSettings.headerLeft = document.getElementById('headerLeftText').value;
+
+            try {
+                await supabaseClient.from('settings').upsert([{
+                    key: 'global_report_settings',
+                    logo: cloudSettings.logo,
+                    foot1: cloudSettings.foot1,
+                    foot2: cloudSettings.foot2,
+                    foot3: cloudSettings.foot3,
+                    foot4: cloudSettings.foot4,
+                    foot5: cloudSettings.foot5,
+                    footer_size: cloudSettings.fSize,
+                    header_right: cloudSettings.headerRight,
+                    header_left: cloudSettings.headerLeft,
+                    weakness_error_threshold: weaknessThreshold
+                }], { onConflict: 'key' });
+            } catch (err) {
+                console.error('خطأ في حفظ الإعدادات سحابياً:', err);
+            }
+        }
+
+        async function saveWeaknessThreshold() {
+            const val = parseInt(document.getElementById('weaknessThresholdInput').value, 10);
+            weaknessThreshold = (!isNaN(val) && val >= 1) ? val : 5;
+            document.getElementById('weaknessThresholdInput').value = weaknessThreshold;
+            await saveCloudSettings();
+        }
+
+        async function handleLogoUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async function (e) {
+                    cloudSettings.logo = e.target.result;
+                    await saveCloudSettings();
+                    alert('✅ تم حفظ وتثبيت الشعار في السحابة بنجاح!');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function fetchCloudData() {
+            try {
+                const [stRes, ctRes] = await Promise.all([
+                    supabaseClient.from('students').select('cpr, name, cls'),
+                    supabaseClient.from('class_teachers').select('*')
+                ]);
+
+                if (ctRes.data) classTeachersAssignments = ctRes.data;
+                if (stRes.data) allStudentsList = stRes.data;
+
+                const role = getRoleType();
+                if (role === 'teacher' && currentUser.name) {
+                    const { data: teacherCtData } = await supabaseClient
+                        .from('class_teachers')
+                        .select('cls')
+                        .eq('teacher_name', currentUser.name);
+
+                    if (teacherCtData) {
+                        teacherAssignedClassesList = teacherCtData.map(item => String(item.cls).trim());
+                    }
+                }
+
+                let sectionsSet = new Set();
+                allStudentsList.forEach(st => {
+                    let c = st.cls ? String(st.cls).trim() : '';
+                    if (c) sectionsSet.add(c);
+                });
+
+                cloudSections = Array.from(sectionsSet).sort();
+                renderSectionsPicker();
+                renderStudentDropdown();
+            } catch (err) {
+                console.error('Error fetching cloud data:', err);
+            }
+        }
+
+        function getAllowedSections() {
+            const role = getRoleType();
+            if (role === 'teacher') {
+                return teacherAssignedClassesList;
+            }
+            return cloudSections;
+        }
+
+        function renderSectionsPicker() {
+            const boxEl = document.getElementById('sectionsPickerBox');
+            boxEl.innerHTML = '';
+            const allowed = getAllowedSections();
+
+            if (!allowed || allowed.length === 0) {
+                boxEl.innerHTML = '<span style="color:#666; font-size:12px;">لا توجد صفوف متاحة</span>';
+                return;
+            }
+
+            allowed.forEach(sec => {
+                const chip = document.createElement('div');
+                const isSel = selectedSectionsSet.has(sec);
+                chip.className = 'section-chip' + (isSel ? ' selected' : '');
+                chip.innerHTML = `${isSel ? '✓ ' : ''}${sec}`;
+                chip.onclick = () => {
+                    if (selectedSectionsSet.has(sec)) {
+                        selectedSectionsSet.delete(sec);
+                    } else {
+                        selectedSectionsSet.add(sec);
+                    }
+                    // إزالة الطلاب غير التابعين للصفوف المحددة
+                    const validCprs = new Set(
+                        allStudentsList
+                            .filter(s => selectedSectionsSet.has(String(s.cls).trim()))
+                            .map(s => String(s.cpr))
+                    );
+                    Array.from(selectedStudentCprsSet).forEach(cpr => {
+                        if (!validCprs.has(cpr)) selectedStudentCprsSet.delete(cpr);
+                    });
+                    renderSectionsPicker();
+                    renderStudentDropdown();
+                };
+                boxEl.appendChild(chip);
+            });
+        }
+
+        function toggleSelectAllSections() {
+            const allowed = getAllowedSections();
+            if (!allowed.length) return;
+            const allSelected = allowed.every(sec => selectedSectionsSet.has(sec));
+            if (allSelected) {
+                selectedSectionsSet.clear();
+                selectedStudentCprsSet.clear();
+            } else {
+                allowed.forEach(sec => selectedSectionsSet.add(sec));
+            }
+            renderSectionsPicker();
+            renderStudentDropdown();
+        }
+
+        function toggleStudentDropdown() {
+            document.getElementById('studentDropdownMenu').classList.toggle('open');
+        }
+
+        document.addEventListener('click', (e) => {
+            const wrapper = document.getElementById('studentDropdownWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('studentDropdownMenu').classList.remove('open');
+            }
+        });
+
+        function renderStudentDropdown() {
+            const menu = document.getElementById('studentDropdownMenu');
+            const labelEl = document.getElementById('studentDropdownLabel');
+            const searchTerm = (document.getElementById('studentSearchInput').value || '').trim().toLowerCase();
+
+            const pool = allStudentsList.filter(st => {
+                const cls = String(st.cls || '').trim();
+                if (selectedSectionsSet.size > 0 && !selectedSectionsSet.has(cls)) return false;
+                if (searchTerm && !String(st.name || '').toLowerCase().includes(searchTerm)) return false;
+                return true;
+            }).sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+
+            menu.innerHTML = '';
+            if (pool.length === 0) {
+                menu.innerHTML = '<div style="padding:10px; font-size:12px; color:#64748b;">لا يوجد طلاب مطابقون</div>';
+            } else {
+                pool.forEach(st => {
+                    const cprStr = String(st.cpr);
+                    const checked = selectedStudentCprsSet.has(cprStr);
+                    const item = document.createElement('div');
+                    item.className = 'multi-dropdown-item' + (checked ? ' checked' : '');
+                    item.innerHTML = `<span>${st.name} <small style="color:#64748b;">(${st.cls})</small></span><span>${checked ? '✓' : ''}</span>`;
+                    item.onclick = (ev) => {
+                        ev.stopPropagation();
+                        if (selectedStudentCprsSet.has(cprStr)) {
+                            selectedStudentCprsSet.delete(cprStr);
+                        } else {
+                            selectedStudentCprsSet.add(cprStr);
+                        }
+                        renderStudentDropdown();
+                    };
+                    menu.appendChild(item);
+                });
+            }
+
+            if (selectedStudentCprsSet.size === 0) {
+                labelEl.textContent = 'جميع طلاب الصفوف المحددة';
+            } else {
+                labelEl.textContent = `تم تحديد (${selectedStudentCprsSet.size}) طالب`;
+            }
+        }
+
+        function renderTablesPicker() {
+            const box = document.getElementById('tablesPickerBox');
+            box.innerHTML = '';
+            for (let t = 1; t <= 12; t++) {
+                const chip = document.createElement('div');
+                const isSel = selectedTablesSet.has(t);
+                chip.className = 'section-chip' + (isSel ? ' selected' : '');
+                chip.innerHTML = `${isSel ? '✓ ' : ''}جدول ${t}`;
+                chip.onclick = () => {
+                    if (selectedTablesSet.has(t)) selectedTablesSet.delete(t);
+                    else selectedTablesSet.add(t);
+                    renderTablesPicker();
+                };
+                box.appendChild(chip);
+            }
+        }
+
+        function toggleSelectAllTables() {
+            const allSelected = selectedTablesSet.size === 12;
+            selectedTablesSet.clear();
+            if (!allSelected) {
+                for (let t = 1; t <= 12; t++) selectedTablesSet.add(t);
+            }
+            renderTablesPicker();
+        }
+
+        function getTeacherNameForSection(sec) {
+            const found = classTeachersAssignments.find(item => String(item.cls).trim() === String(sec).trim());
+            return (found && found.teacher_name) ? found.teacher_name : 'غير مسند';
+        }
+
+        function getPeriodStartDate(period) {
+            const now = new Date();
+            const start = new Date(now);
+            if (period === 'day') {
+                start.setHours(0, 0, 0, 0);
+            } else if (period === 'month') {
+                start.setDate(1);
+                start.setHours(0, 0, 0, 0);
+            } else {
+                // أسبوع (الافتراضي)
+                const dayOfWeek = now.getDay();
+                start.setDate(now.getDate() - dayOfWeek);
+                start.setHours(0, 0, 0, 0);
+            }
+            return start;
+        }
+
+        function destroyActiveCharts() {
+            activeCharts.forEach(ch => ch.destroy());
+            activeCharts = [];
+        }
+
+        function buildHeaderHtml(titleText) {
+            const formattedRight = cloudSettings.headerRight.replace(/\n/g, '<br>');
+            const formattedLeft = cloudSettings.headerLeft.replace(/\n/g, '<br>');
+            return `
+                <div class="report-header-box">
+                    <div class="report-header-right">${formattedRight}</div>
+                    <div class="report-header-center">
+                        ${cloudSettings.logo ? `<img src="${cloudSettings.logo}" class="report-logo">` : ''}
+                        <div class="report-title">${titleText}</div>
+                    </div>
+                    <div class="report-header-left">${formattedLeft}</div>
+                </div>
+            `;
+        }
+
+        function buildFooterHtml() {
+            return `
+                <table class="footer-table">
+                    <tr>
+                        <td><textarea class="footer-editable-cell" style="font-size: ${cloudSettings.fSize};">${cloudSettings.foot1}</textarea></td>
+                        <td><textarea class="footer-editable-cell" style="font-size: ${cloudSettings.fSize};">${cloudSettings.foot2}</textarea></td>
+                        <td><textarea class="footer-editable-cell" style="font-size: ${cloudSettings.fSize};">${cloudSettings.foot3}</textarea></td>
+                        <td><textarea class="footer-editable-cell" style="font-size: ${cloudSettings.fSize};">${cloudSettings.foot4}</textarea></td>
+                        <td><textarea class="footer-editable-cell" style="font-size: ${cloudSettings.fSize};">${cloudSettings.foot5}</textarea></td>
+                    </tr>
+                </table>
+            `;
+        }
+
+        async function generateStudentReports() {
+            const navContainer = document.getElementById('admin-nav-container');
+            if (navContainer) navContainer.remove();
+
+            if (selectedSectionsSet.size === 0) {
+                alert('⚠️ يرجى اختيار صف واحد على الأقل.');
+                return;
+            }
+
+            const period = document.getElementById('sessionPeriodSelect').value;
+            const startDate = getPeriodStartDate(period);
+            const showTeacher = document.getElementById('optShowTeacher').checked;
+            const showDate = document.getElementById('optShowDate').checked;
+            const searchTerm = (document.getElementById('studentSearchInput').value || '').trim().toLowerCase();
+
+            let targetStudents = allStudentsList.filter(st => selectedSectionsSet.has(String(st.cls).trim()));
+            if (selectedStudentCprsSet.size > 0) {
+                targetStudents = targetStudents.filter(st => selectedStudentCprsSet.has(String(st.cpr)));
+            } else if (searchTerm) {
+                targetStudents = targetStudents.filter(st => String(st.name || '').toLowerCase().includes(searchTerm));
+            }
+            targetStudents.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ar'));
+
+            if (targetStudents.length === 0) {
+                alert('⚠️ لا يوجد طلاب مطابقون للاختيارات الحالية.');
+                return;
+            }
+
+            destroyActiveCharts();
+            const container = document.getElementById('reportPreviewContent');
+            container.innerHTML = '<div style="text-align:center; padding:20px;">جاري توليد تقارير الطلاب...</div>';
+            document.getElementById('reportOutputCard').classList.remove('hidden');
+
+            try {
+                const cprs = targetStudents.map(s => String(s.cpr));
+                const [sessionsRes, statsRes] = await Promise.all([
+                    supabaseClient.from('student_sessions').select('*').in('cpr', cprs).gte('played_at', startDate.toISOString()).order('played_at', { ascending: true }),
+                    supabaseClient.from('student_table_stats').select('*').in('cpr', cprs).gte('recorded_at', startDate.toISOString())
+                ]);
+
+                const sessionsData = sessionsRes.data || [];
+                const statsData = statsRes.data || [];
+                const periodLabel = period === 'day' ? 'يوم' : (period === 'month' ? 'شهر' : 'أسبوع');
+                const exportDateStr = new Date().toLocaleDateString('ar-BH');
+
+                let html = '';
+                const chartConfigs = [];
+
+                targetStudents.forEach((st, idx) => {
+                    const cprStr = String(st.cpr);
+                    const clsStr = String(st.cls || '').trim();
+                    const teacherName = getTeacherNameForSection(clsStr);
+
+                    const stSessions = sessionsData.filter(s => String(s.cpr) === cprStr);
+                    const stStats = statsData.filter(x => String(x.cpr) === cprStr);
+
+                    // تجميع الأخطاء لكل جدول (1-12)
+                    const tableErrorsMap = {};
+                    for (let t = 1; t <= 12; t++) tableErrorsMap[t] = 0;
+                    stStats.forEach(row => {
+                        const tbl = parseInt(row.multiplication_table, 10);
+                        if (tbl >= 1 && tbl <= 12) {
+                            tableErrorsMap[tbl] += (parseInt(row.wrong_count, 10) || 0);
+                        }
+                    });
+
+                    // ترتيب تنازلي حسب عدد الأخطاء
+                    const sortedTables = Object.entries(tableErrorsMap)
+                        .map(([tbl, errs]) => ({ tbl: parseInt(tbl, 10), errs }))
+                        .sort((a, b) => b.errs - a.errs || a.tbl - b.tbl);
+
+                    // نقاط الضعف: أكبر من الحد المحدد (الافتراضي 5)
+                    const weakTables = sortedTables.filter(item => item.errs > weaknessThreshold);
+
+                    const chartId = `studentChart_${idx}_${Date.now()}`;
+                    const sessionLabels = stSessions.map((s, i) => {
+                        const d = s.played_at ? new Date(s.played_at).toLocaleDateString('ar-BH', { month: 'numeric', day: 'numeric' }) : `جلسة ${i + 1}`;
+                        return `${d} (${s.game_key || ''})`;
+                    });
+                    const sessionWrongCounts = stSessions.map(s => parseInt(s.wrong_count, 10) || 0);
+                    chartConfigs.push({ chartId, labels: sessionLabels, data: sessionWrongCounts });
+
+                    html += `<div class="report-single-page">`;
+                    html += buildHeaderHtml(`تقرير متابعة الطالب (${periodLabel})`);
+                    html += `
+                        <div class="report-meta-bar">
+                            <span>👤 اسم الطالب: <b>${st.name}</b></span>
+                            <span>📚 الصف: <b>${clsStr}</b></span>
+                            ${showTeacher ? `<span>👨‍🏫 المعلم: <b>${teacherName}</b></span>` : ''}
+                            ${showDate ? `<span>📅 تاريخ التصدير: <b>${exportDateStr}</b></span>` : ''}
+                        </div>
+                    `;
+
+                    html += `<div class="student-grid-2col">`;
+
+                    // 1- عدد الأخطاء في كل جدول
+                    html += `
+                        <div class="sub-box">
+                            <h3>1- عدد الأخطاء في كل جدول (تنازلياً)</h3>
+                            <div class="table-container" style="margin-bottom:0;">
+                                <table class="report-table" style="min-width:100%;">
+                                    <thead>
+                                        <tr><th>الجدول</th><th>عدد الأخطاء</th><th>الحالة</th></tr>
+                                    </thead>
+                                    <tbody>
+                                        ${sortedTables.map(item => {
+                                            const isWeak = item.errs > weaknessThreshold;
+                                            return `
+                                                <tr>
+                                                    <td><b>جدول ${item.tbl}</b></td>
+                                                    <td><b>${item.errs}</b></td>
+                                                    <td>${isWeak ? `<span style="color:#b91c1c; font-weight:bold;">نقطة ضعف</span>` : `<span style="color:#475569;">مرصود</span>`}</td>
+                                                </tr>
+                                            `;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+
+                    // 2- نقاط الضعف + 3- متابعة الجلسات حسب الأخطاء
+                    html += `
+                        <div style="display:flex; flex-direction:column; gap:10px;">
+                            <div class="sub-box">
+                                <h3>2- نقاط الضعف (أكبر من ${weaknessThreshold} أخطاء)</h3>
+                                <div class="weakness-tags">
+                                    ${weakTables.length > 0
+                                        ? weakTables.map(w => `<span class="weak-badge">جدول ${w.tbl} (${w.errs} أخطاء)</span>`).join('')
+                                        : `<span class="no-weak-badge">لا توجد جداول متجاوزة للحد (${weaknessThreshold} أخطاء)</span>`
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="sub-box" style="flex:1;">
+                                <h3>3- متابعة الجلسات حسب الأخطاء</h3>
+                                ${stSessions.length > 0
+                                    ? `<div class="chart-wrap"><canvas id="${chartId}"></canvas></div>`
+                                    : `<p style="text-align:center; color:#64748b; font-size:8.5pt; margin:20px 0;">لا توجد جلسات مسجلة خلال هذه المدة.</p>`
+                                }
+                            </div>
+                        </div>
+                    `;
+
+                    html += `</div>`; // نهاية student-grid-2col
+                    html += buildFooterHtml();
+                    html += `</div>`; // نهاية report-single-page
+                });
+
+                container.innerHTML = html;
+
+                chartConfigs.forEach(cfg => {
+                    if (!cfg.labels.length) return;
+                    const ctx = document.getElementById(cfg.chartId);
+                    if (!ctx) return;
+                    const chart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: cfg.labels,
+                            datasets: [{
+                                label: 'عدد الأخطاء في الجلسة',
+                                data: cfg.data,
+                                borderColor: '#d81b60',
+                                backgroundColor: 'rgba(216, 27, 96, 0.15)',
+                                borderWidth: 2,
+                                tension: 0.25,
+                                fill: true,
+                                pointRadius: 3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: { legend: { display: false } },
+                            scales: {
+                                y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Cairo', size: 9 } } },
+                                x: { ticks: { font: { family: 'Cairo', size: 8.5 } } }
+                            }
+                        }
+                    });
+                    activeCharts.push(chart);
+                });
+
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<p style="color:red; text-align:center;">حدث خطأ أثناء جلب بيانات تقارير الطلاب.</p>`;
+            }
+        }
+
+        async function generateTableFollowupReports() {
+            const navContainer = document.getElementById('admin-nav-container');
+            if (navContainer) navContainer.remove();
+
+            if (selectedTablesSet.size === 0) {
+                alert('⚠️ يرجى اختيار جدول ضرب واحد على الأقل.');
+                return;
+            }
+
+            const allowedSections = getAllowedSections();
+            if (!allowedSections || allowedSections.length === 0) {
+                alert('⚠️ لا توجد صفوف متاحة لصلاحياتك.');
+                return;
+            }
+
+            const period = document.getElementById('tableFollowupPeriodSelect').value;
+            const startDate = getPeriodStartDate(period);
+            const showTeacher = document.getElementById('tblOptShowTeacher').checked;
+            const showDate = document.getElementById('tblOptShowDate').checked;
+
+            destroyActiveCharts();
+            const container = document.getElementById('reportPreviewContent');
+            container.innerHTML = '<div style="text-align:center; padding:20px;">جاري توليد تقارير المتابعة بالجدول...</div>';
+            document.getElementById('reportOutputCard').classList.remove('hidden');
+
+            try {
+                const allowedStudents = allStudentsList.filter(st => allowedSections.includes(String(st.cls || '').trim()));
+                const cprs = allowedStudents.map(s => String(s.cpr));
+                const tablesArr = Array.from(selectedTablesSet).sort((a, b) => a - b);
+
+                const { data: statsData } = await supabaseClient
+                    .from('student_table_stats')
+                    .select('*')
+                    .in('cpr', cprs)
+                    .in('multiplication_table', tablesArr)
+                    .gte('recorded_at', startDate.toISOString());
+
+                const rows = statsData || [];
+                const studentMap = new Map();
+                allowedStudents.forEach(s => studentMap.set(String(s.cpr), s));
+
+                const periodLabel = period === 'day' ? 'يوم' : (period === 'month' ? 'شهر' : 'أسبوع');
+                const exportDateStr = new Date().toLocaleDateString('ar-BH');
+                let html = '';
+
+                tablesArr.forEach(tblNum => {
+                    const errByStudent = {};
+                    rows.forEach(r => {
+                        if (parseInt(r.multiplication_table, 10) === tblNum) {
+                            const k = String(r.cpr);
+                            errByStudent[k] = (errByStudent[k] || 0) + (parseInt(r.wrong_count, 10) || 0);
+                        }
+                    });
+
+                    // جلب الطلاب الذين لديهم ضعف (> الحد المحدد) مرتبين حسب الصف أولاً ثم الاسم أبجدياً
+                    const weakList = [];
+                    Object.entries(errByStudent).forEach(([cprKey, errs]) => {
+                        if (errs > weaknessThreshold) {
+                            const st = studentMap.get(cprKey);
+                            if (st) {
+                                const clsStr = String(st.cls || '').trim();
+                                weakList.push({
+                                    name: st.name,
+                                    cls: clsStr,
+                                    teacher: getTeacherNameForSection(clsStr),
+                                    errs
+                                });
+                            }
+                        }
+                    });
+
+                    weakList.sort((a, b) => {
+                        const clsCmp = a.cls.localeCompare(b.cls, 'ar');
+                        if (clsCmp !== 0) return clsCmp;
+                        return (a.name || '').localeCompare(b.name || '', 'ar');
+                    });
+
+                    html += `<div class="report-single-page">`;
+                    html += buildHeaderHtml(`متابعة الطلاب حسب الجدول (${periodLabel})`);
+                    html += `
+                        <div class="report-meta-bar">
+                            <span>🔢 رقم الجدول: <b>جدول (${tblNum})</b></span>
+                            <span>⚠️ حد الضعف: <b>أكبر من ${weaknessThreshold} أخطاء</b></span>
+                            ${showDate ? `<span>📅 تاريخ التصدير: <b>${exportDateStr}</b></span>` : ''}
+                        </div>
+                    `;
+
+                    if (weakList.length === 0) {
+                        html += `<p style="text-align:center; color:#64748b; padding:20px;">لا يوجد طلاب لديهم ضعف في جدول (${tblNum}) خلال هذه المدة.</p>`;
+                    } else {
+                        html += `
+                            <div class="table-container">
+                                <table class="report-table">
+                                    <thead>
+                                        <tr>
+                                            <th>م</th>
+                                            <th>اسم الطالب</th>
+                                            <th>الصف</th>
+                                            ${showTeacher ? `<th>المعلم</th>` : ''}
+                                            <th>عدد الأخطاء</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${weakList.map((item, i) => `
+                                            <tr>
+                                                <td>${i + 1}</td>
+                                                <td style="text-align:right; font-weight:bold; padding-right:8px;">${item.name}</td>
+                                                <td>${item.cls}</td>
+                                                ${showTeacher ? `<td>${item.teacher}</td>` : ''}
+                                                <td style="color:#b91c1c; font-weight:900;">${item.errs}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    }
+
+                    html += buildFooterHtml();
+                    html += `</div>`;
+                });
+
+                container.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `<p style="color:red; text-align:center;">حدث خطأ أثناء توليد تقارير المتابعة بالجدول.</p>`;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('current_staff_user');
+            window.location.href = 'staff.html';
+        }
+    </script>
+</body>
+</html>
