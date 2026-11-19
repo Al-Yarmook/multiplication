@@ -200,7 +200,6 @@
             gap: 6px;
         }
 
-        /* ترتيب عمودي للأقسام: الأخطاء -> نقاط الضعف -> الرسم البياني */
         .student-vertical-stack {
             display: flex;
             flex-direction: column;
@@ -307,7 +306,6 @@
 
         <div id="admin-nav-container"></div>
 
-        <!-- حد اعتبار نقاط الضعف للمدير والمشرف فقط -->
         <div class="section-card hidden" id="weaknessThresholdCard">
             <h2>🛡️ إعداد حد نقاط الضعف (للمدير والمشرف فقط)</h2>
             <div class="form-row" style="margin-bottom: 0; align-items: center;">
@@ -321,7 +319,6 @@
             </div>
         </div>
 
-        <!-- القسم الأول: تقرير الطالب -->
         <div class="section-card">
             <h2>👤 قسم تقرير الطالب (صفحة واحدة لكل طالب)</h2>
 
@@ -370,7 +367,6 @@
                 <button class="btn" type="button" onclick="generateStudentReports()">⚡ توليد تقارير الطلاب</button>
             </div>
 
-            <!-- معاينة تقرير الطالب مباشرة أسفل القسم -->
             <div class="inline-preview-box hidden" id="studentReportPreviewBox">
                 <div class="inline-preview-header">
                     <h3>معاينة تقرير الطالب 📄</h3>
@@ -380,7 +376,6 @@
             </div>
         </div>
 
-        <!-- القسم الثاني: المتابعة بالجدول -->
         <div class="section-card">
             <h2>📊 قسم المتابعة بالجدول (صفحة منفصلة لكل جدول)</h2>
 
@@ -411,7 +406,6 @@
                 <button class="btn" type="button" onclick="generateTableFollowupReports()">⚡ توليد متابعة الجداول</button>
             </div>
 
-            <!-- معاينة المتابعة بالجدول مباشرة أسفل القسم -->
             <div class="inline-preview-box hidden" id="tableFollowupPreviewBox">
                 <div class="inline-preview-header">
                     <h3>معاينة المتابعة بالجدول 📄</h3>
@@ -445,7 +439,6 @@
         let weaknessThreshold = 5;
         let activeCharts = [];
 
-        // إعدادات الترويسة والتذييل منسوخة من صفحة التقارير
         let cloudSettings = {
             logo: '',
             headerRight: 'مملكة البحرين\nوزارة التربية والتعليم\nمدرسة اليرموك الابتدائية للبنين',
@@ -736,6 +729,12 @@
             return raw ? new Date(raw) : null;
         }
 
+        function matchesStudentRecord(row, cprStr, nameStr) {
+            const rowCpr = row.cpr !== undefined && row.cpr !== null ? String(row.cpr).trim() : '';
+            const rowName = row.student_name !== undefined && row.student_name !== null ? String(row.student_name).trim() : '';
+            return (cprStr && rowCpr === cprStr) || (nameStr && rowCpr === nameStr) || (nameStr && rowName === nameStr);
+        }
+
         function destroyActiveCharts() {
             activeCharts.forEach(ch => ch.destroy());
             activeCharts = [];
@@ -802,10 +801,13 @@
             previewBox.classList.remove('hidden');
 
             try {
-                const cprs = targetStudents.map(s => String(s.cpr));
+                const cprs = targetStudents.map(s => String(s.cpr || '').trim()).filter(Boolean);
+                const names = targetStudents.map(s => String(s.name || '').trim()).filter(Boolean);
+                const lookupKeys = Array.from(new Set([...cprs, ...names]));
+
                 const [sessionsRes, statsRes] = await Promise.all([
-                    supabaseClient.from('student_sessions').select('*').in('cpr', cprs),
-                    supabaseClient.from('student_table_stats').select('*').in('cpr', cprs)
+                    supabaseClient.from('student_sessions').select('*').in('cpr', lookupKeys),
+                    supabaseClient.from('student_table_stats').select('*').in('cpr', lookupKeys)
                 ]);
 
                 const sessionsData = (sessionsRes.data || []).filter(s => {
@@ -829,14 +831,14 @@
                 const chartConfigs = [];
 
                 targetStudents.forEach((st, idx) => {
-                    const cprStr = String(st.cpr);
+                    const cprStr = String(st.cpr || '').trim();
+                    const nameStr = String(st.name || '').trim();
                     const clsStr = String(st.cls || '').trim();
                     const teacherName = getTeacherNameForSection(clsStr);
 
-                    const stSessions = sessionsData.filter(s => String(s.cpr) === cprStr);
-                    const stStats = statsData.filter(x => String(x.cpr) === cprStr);
+                    const stSessions = sessionsData.filter(s => matchesStudentRecord(s, cprStr, nameStr));
+                    const stStats = statsData.filter(x => matchesStudentRecord(x, cprStr, nameStr));
 
-                    // تجميع الأخطاء لكل جدول (1-12)
                     const tableErrorsMap = {};
                     for (let t = 1; t <= 12; t++) tableErrorsMap[t] = 0;
                     stStats.forEach(row => {
@@ -846,16 +848,13 @@
                         }
                     });
 
-                    // إظهار الجداول التي بها أخطاء فقط (> 0) مرتبة تنازلياً حسب عدد الأخطاء
                     const errorTablesOnly = Object.entries(tableErrorsMap)
                         .map(([tbl, errs]) => ({ tbl: parseInt(tbl, 10), errs }))
                         .filter(item => item.errs > 0)
                         .sort((a, b) => b.errs - a.errs || a.tbl - b.tbl);
 
-                    // نقاط الضعف: أكبر من الحد المحدد (الافتراضي 5)
                     const weakTables = errorTablesOnly.filter(item => item.errs > weaknessThreshold);
 
-                    // الرسم البياني: نسبة الأخطاء في الجلسات
                     const chartId = `studentChart_${idx}_${Date.now()}`;
                     const sessionLabels = stSessions.map((s, i) => {
                         const dt = getRecordDate(s);
@@ -882,7 +881,6 @@
 
                     html += `<div class="student-vertical-stack">`;
 
-                    // 1- الأخطاء (الجداول التي بها أخطاء فقط)
                     html += `
                         <div class="sub-box">
                             <h3>1- الأخطاء (الجداول التي بها أخطاء فقط)</h3>
@@ -909,7 +907,6 @@
                         </div>
                     `;
 
-                    // 2- نقاط الضعف
                     html += `
                         <div class="sub-box">
                             <h3>2- نقاط الضعف (أكبر من ${weaknessThreshold} أخطاء)</h3>
@@ -922,7 +919,6 @@
                         </div>
                     `;
 
-                    // 3- الرسم البياني (نسبة الأخطاء في الجلسات)
                     html += `
                         <div class="sub-box">
                             <h3>3- الرسم البياني (نسبة الأخطاء في الجلسات %)</h3>
@@ -933,9 +929,9 @@
                         </div>
                     `;
 
-                    html += `</div>`; // نهاية student-vertical-stack
+                    html += `</div>`;
                     html += buildFooterHtml();
-                    html += `</div>`; // نهاية report-single-page
+                    html += `</div>`;
                 });
 
                 container.innerHTML = html;
@@ -1009,13 +1005,15 @@
 
             try {
                 const allowedStudents = allStudentsList.filter(st => allowedSections.includes(String(st.cls || '').trim()));
-                const cprs = allowedStudents.map(s => String(s.cpr));
+                const cprs = allowedStudents.map(s => String(s.cpr || '').trim()).filter(Boolean);
+                const names = allowedStudents.map(s => String(s.name || '').trim()).filter(Boolean);
+                const lookupKeys = Array.from(new Set([...cprs, ...names]));
                 const tablesArr = Array.from(selectedTablesSet).sort((a, b) => a - b);
 
                 const { data: statsData } = await supabaseClient
                     .from('student_table_stats')
                     .select('*')
-                    .in('cpr', cprs)
+                    .in('cpr', lookupKeys)
                     .in('multiplication_table', tablesArr);
 
                 const rows = (statsData || []).filter(r => {
@@ -1023,39 +1021,37 @@
                     return !dt || dt >= startDate;
                 });
 
-                const studentMap = new Map();
-                allowedStudents.forEach(s => studentMap.set(String(s.cpr), s));
-
                 const periodLabel = period === 'day' ? 'يوم' : (period === 'month' ? 'شهر' : 'أسبوع');
                 const exportDateStr = new Date().toLocaleDateString('ar-BH');
                 let html = '';
 
                 tablesArr.forEach(tblNum => {
-                    const errByStudent = {};
-                    rows.forEach(r => {
-                        if (parseInt(r.multiplication_table, 10) === tblNum) {
-                            const k = String(r.cpr);
-                            errByStudent[k] = (errByStudent[k] || 0) + (parseInt(r.wrong_count, 10) || 0);
-                        }
-                    });
+                    const errByStudent = new Map();
 
-                    const weakList = [];
-                    Object.entries(errByStudent).forEach(([cprKey, errs]) => {
-                        if (errs > weaknessThreshold) {
-                            const st = studentMap.get(cprKey);
-                            if (st) {
-                                const clsStr = String(st.cls || '').trim();
-                                weakList.push({
-                                    name: st.name,
-                                    cls: clsStr,
-                                    teacher: getTeacherNameForSection(clsStr),
-                                    errs
-                                });
+                    allowedStudents.forEach(st => {
+                        const cprStr = String(st.cpr || '').trim();
+                        const nameStr = String(st.name || '').trim();
+                        const mapKey = `${cprStr}__${nameStr}`;
+                        let sumErrs = 0;
+
+                        rows.forEach(r => {
+                            if (parseInt(r.multiplication_table, 10) === tblNum && matchesStudentRecord(r, cprStr, nameStr)) {
+                                sumErrs += (parseInt(r.wrong_count, 10) || 0);
                             }
+                        });
+
+                        if (sumErrs > weaknessThreshold) {
+                            const clsStr = String(st.cls || '').trim();
+                            errByStudent.set(mapKey, {
+                                name: st.name,
+                                cls: clsStr,
+                                teacher: getTeacherNameForSection(clsStr),
+                                errs: sumErrs
+                            });
                         }
                     });
 
-                    weakList.sort((a, b) => {
+                    const weakList = Array.from(errByStudent.values()).sort((a, b) => {
                         const clsCmp = a.cls.localeCompare(b.cls, 'ar');
                         if (clsCmp !== 0) return clsCmp;
                         return (a.name || '').localeCompare(b.name || '', 'ar');
