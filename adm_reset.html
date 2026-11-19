@@ -31,7 +31,6 @@
         input { width: 100%; padding: 8px 10px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-family: 'Cairo'; }
         .danger-zone { border: 2px dashed #d32f2f; padding: 25px; border-radius: 12px; background: #ffebee; margin-bottom: 20px; }
         
-        /* تصميم أزرار اختيار الألعاب التفاعلية */
         .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 15px; }
         .game-toggle-btn {
             background: #ffffff;
@@ -71,14 +70,12 @@
             <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
         </header>
 
-        <!-- مكان ظهور شريط التنقل العلوي الموحد -->
         <div id="admin-nav-container"></div>
 
         <div class="section-card">
             <h2>منطقة إدارة العمليات والبيانات الحساسة ⚙️</h2>
             <p style="color: #666; margin-bottom: 25px;">هذه الخيارات مخصصة لمدير النظام لإعادة هيكلة المنصة ومسح النتائج أو بيانات الطلاب تحضيراً لبداية العام الدراسي الجديد.</p>
 
-            <!-- تأكيد كلمة المرور المشتركة للعمليات الخطرة -->
             <div class="form-row" style="max-width: 450px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
                 <div class="form-group">
                     <label style="color: #d32f2f;">أدخل كلمة مرور الحساب للتأكيد والتفعيل:</label>
@@ -86,36 +83,37 @@
                 </div>
             </div>
 
-            <!-- 1. تصفير نتائج الألعاب (اختيار متعدد عبر الأزرار) -->
+            <!-- 1. تصفير نتائج الألعاب وجلسات وإحصاءات الأخطاء -->
             <div class="danger-zone">
-                <h3 style="color: #d32f2f; margin-top:0;">⚠️ تصفير نتائج ولوحات صدارة الألعاب</h3>
-                <p style="font-size: 13px; color: #555;">انقر على الألعاب المطلوبة لتحديدها (يمكنك اختيار لعبة واحدة أو عدة ألعاب معاً)، ثم اضغط على زر التصفير.</p>
+                <h3 style="color: #d32f2f; margin-top:0;">⚠️ تصفير نتائج الألعاب وجلسات وإحصاءات الأخطاء</h3>
+                <p style="font-size: 13px; color: #555;">انقر على الخيارات المطلوبة لتحديدها (يمكنك اختيار خيار واحد أو عدة خيارات معاً)، ثم اضغط على زر التصفير.</p>
                 
-                <!-- زر تحديد الكل -->
                 <div class="select-all-container">
                     <button type="button" class="btn-outline" id="selectAllBtn" onclick="toggleSelectAll()">✅ تحديد الكل</button>
                 </div>
 
-                <!-- شبكة أزرار الألعاب -->
                 <div class="games-grid">
-                    <button type="button" class="game-toggle-btn" data-table="rocket_scores" onclick="toggleGameButton(this)">
+                    <button type="button" class="game-toggle-btn" data-tables="rocket_scores" onclick="toggleGameButton(this)">
                         🚀 لعبة الفضاء
                     </button>
-                    <button type="button" class="game-toggle-btn" data-table="goldmine_scores" onclick="toggleGameButton(this)">
+                    <button type="button" class="game-toggle-btn" data-tables="goldmine_scores" onclick="toggleGameButton(this)">
                         ⛏️ منجم الذهب
                     </button>
-                    <button type="button" class="game-toggle-btn" data-table="mountain_scores" onclick="toggleGameButton(this)">
+                    <button type="button" class="game-toggle-btn" data-tables="mountain_scores" onclick="toggleGameButton(this)">
                         ⛰️ الصعود نحو القمة
                     </button>
-                    <button type="button" class="game-toggle-btn" data-table="snake_scores" onclick="toggleGameButton(this)">
+                    <button type="button" class="game-toggle-btn" data-tables="snake_scores" onclick="toggleGameButton(this)">
                         🐍 لعبة الحية
+                    </button>
+                    <button type="button" class="game-toggle-btn" data-tables="student_sessions,student_table_stats" onclick="toggleGameButton(this)">
+                        📉 جلسات وإحصاءات الأخطاء
                     </button>
                 </div>
 
-                <button class="btn btn-red" onclick="resetScoresOnly()">تصفير النتائج للألعاب المحددة الآن 🗑️</button>
+                <button class="btn btn-red" onclick="resetScoresOnly()">تصفير المحدد الآن 🗑️</button>
             </div>
 
-            <!-- 2. تصفير وحذف جميع الطلاب (مناسب لبداية العام الدراسي) -->
+            <!-- 2. تصفير وحذف جميع الطلاب -->
             <div class="danger-zone" style="border-color: #b71c1c; background: #fce4ec;">
                 <h3 style="color: #b71c1c; margin-top:0;">🚨 تصفير ومسح قاعدة بيانات الطلاب بالكامل</h3>
                 <p style="font-size: 13px; color: #555;">مناسب لبداية العام الدراسي الجديد؛ سيتم مسح جميع سجلات الطلاب الحاليين بالكامل لتتمكن لاحقاً من رفع ملف إكسل الطلاب الجدد بكل سهولة.</p>
@@ -129,7 +127,6 @@
         إعداد أ. صادق القلعاوي | مدرسة اليرموك الابتدائية للبنين 🏫✨
     </footer>
 
-    <!-- استدعاء ملف القائمة الموحدة -->
     <script src="navbar.js"></script>
 
     <script>
@@ -140,7 +137,6 @@
         } else {
             const roleVal = String(currentUser.role || 'Teacher').trim().toLowerCase();
             
-            // حماية صارمة: المدير فقط مسموح له بدخول هذه الصفحة
             if(roleVal !== 'admin' && roleVal !== 'مدير') {
                 alert('عذراً، هذه الصفحة مخصصة لمدير النظام فقط.');
                 window.location.href = 'adm_scores.html';
@@ -149,7 +145,6 @@
             document.getElementById('welcomeTitle').textContent = `تصفير النتائج والإعدادات (${currentUser.name || 'مدير النظام'})`;
         }
 
-        // تحقق من صحة كلمة المرور المدخلة
         function verifyPassword() {
             const pass = document.getElementById('confirmResetPass').value.trim();
             if(!pass) {
@@ -163,16 +158,13 @@
             return true;
         }
 
-        // دالة تبديل حالة التحديد للزر الفردي
         function toggleGameButton(btn) {
             btn.classList.toggle('selected');
             updateSelectAllButtonState();
         }
 
-        // دالة تحديد الكل أو إلغائه
         function toggleSelectAll() {
             const buttons = document.querySelectorAll('.game-toggle-btn');
-            const selectAllBtn = document.getElementById('selectAllBtn');
             const allSelected = Array.from(buttons).every(btn => btn.classList.contains('selected'));
 
             buttons.forEach(btn => {
@@ -185,7 +177,6 @@
             updateSelectAllButtonState();
         }
 
-        // تحديث نص وشكل زر تحديد الكل بناءً على الحالة الحالية
         function updateSelectAllButtonState() {
             const buttons = document.querySelectorAll('.game-toggle-btn');
             const selectAllBtn = document.getElementById('selectAllBtn');
@@ -198,24 +189,31 @@
             }
         }
 
-        // تصفير النتائج للألعاب المحددة فقط
         async function resetScoresOnly() {
             if(!verifyPassword()) return;
 
-            // جمع كافة الألعاب المحددة
             const selectedButtons = document.querySelectorAll('.game-toggle-btn.selected');
             
             if(selectedButtons.length === 0) {
-                alert('الرجاء اختيار لعبة واحدة على الأقل لتصفير نتائجها.');
+                alert('الرجاء اختيار خيار واحد على الأقل لتصفيره.');
                 return;
             }
 
-            if(confirm(`⚠️ تحذير: هل أنت متأكد تماماً من تصفير نتائج (${selectedButtons.length}) ألعاب محددة؟`)) {
+            const tablesToReset = [];
+            selectedButtons.forEach(btn => {
+                const rawTables = (btn.getAttribute('data-tables') || '').split(',');
+                rawTables.forEach(t => {
+                    const clean = t.trim();
+                    if (clean && !tablesToReset.includes(clean)) {
+                        tablesToReset.push(clean);
+                    }
+                });
+            });
+
+            if(confirm(`⚠️ تحذير: هل أنت متأكد تماماً من تصفير (${selectedButtons.length}) خيارات محددة (${tablesToReset.length} جداول في السحابة)؟`)) {
                 let hasError = false;
 
-                // تنفيذ الحذف لكل لعبة تم اختيارها بالتتابع
-                for(let btn of selectedButtons) {
-                    const tableName = btn.getAttribute('data-table');
+                for(let tableName of tablesToReset) {
                     const { error } = await supabaseClient.from(tableName).delete().neq('id', 0);
                     if(error) {
                         hasError = true;
@@ -224,19 +222,17 @@
                 }
                 
                 if(hasError) {
-                    alert('حدث خطأ أثناء تصفير بعض النتائج بالسحابة.');
+                    alert('حدث خطأ أثناء تصفير بعض البيانات بالسحابة.');
                 } else {
-                    alert('✅ تمت عملية تصفير الألعاب المحددة بنجاح!');
+                    alert('✅ تمت عملية تصفير الخيارات المحددة بنجاح!');
                     document.getElementById('confirmResetPass').value = '';
                     
-                    // إلغاء تحديد الأزرار بعد النجاح
                     selectedButtons.forEach(btn => btn.classList.remove('selected'));
                     updateSelectAllButtonState();
                 }
             }
         }
 
-        // مسح جميع بيانات الطلاب
         async function clearAllStudentsData() {
             if(!verifyPassword()) return;
 
