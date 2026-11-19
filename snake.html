@@ -316,6 +316,27 @@
         let pendingTargetPosition = 1;
         let currentDiceVal = 1;
         let isProcessingMove = false;
+        let correctCount = 0, wrongCount = 0, totalQuestions = 0;
+        let tableStatsMap = {};
+
+        function resetSessionTracking() {
+            correctCount = 0;
+            wrongCount = 0;
+            totalQuestions = 0;
+            tableStatsMap = {};
+            for (let t = 1; t <= 12; t++) {
+                tableStatsMap[t] = { correct: 0, wrong: 0 };
+            }
+        }
+
+        function recordTableOutcome(f1, f2, isCorrect) {
+            const largerTable = Math.max(parseInt(f1, 10) || 1, parseInt(f2, 10) || 1);
+            if (largerTable >= 1 && largerTable <= 12) {
+                if (!tableStatsMap[largerTable]) tableStatsMap[largerTable] = { correct: 0, wrong: 0 };
+                if (isCorrect) tableStatsMap[largerTable].correct += 1;
+                else tableStatsMap[largerTable].wrong += 1;
+            }
+        }
 
         function renderDiceDots(val) {
             for (let i = 0; i < 9; i++) {
@@ -492,6 +513,7 @@
             score = 0;
             gameTime = 0;
             isProcessingMove = false;
+            resetSessionTracking();
             
             await loadSnakeSettings();
             generateBoardHazards();
@@ -592,7 +614,7 @@
                     }
                 }
 
-                currentPuzzle = { answer: correctAns, type: 'dice', target: targetPosOrHazard, dice: diceRolled, needed: neededSteps };
+                currentPuzzle = { answer: correctAns, type: 'dice', target: targetPosOrHazard, dice: diceRolled, needed: neededSteps, f1: n1, f2: n2 };
 
                 let opts = [correctAns];
                 while(opts.length < 4) {
@@ -620,7 +642,7 @@
 
                 let missing = Math.random() > 0.5 ? 1 : 2;
                 correctAns = missing === 1 ? n1 : n2;
-                currentPuzzle = { answer: correctAns, type: contextType, toPos: targetPosOrHazard };
+                currentPuzzle = { answer: correctAns, type: contextType, toPos: targetPosOrHazard, f1: n1, f2: n2 };
 
                 if (contextType === 'ladder') {
                     document.getElementById('qTitle').textContent = `🪜 تحدي السلم! اكتب الإجابة لتصعد`;
@@ -655,7 +677,13 @@
         }
 
         function checkDiceAnswer(selected, correct, targetPos, diceRolled, neededSteps) {
+            totalQuestions++;
+            const f1 = currentPuzzle ? currentPuzzle.f1 : 1;
+            const f2 = currentPuzzle ? currentPuzzle.f2 : 1;
+
             if (selected === correct) {
+                correctCount++;
+                recordTableOutcome(f1, f2, true);
                 playAudioEffect('correct');
                 confetti({ particleCount: 40, spread: 50, origin: { y: 0.6 } });
                 
@@ -671,6 +699,8 @@
                     });
                 }
             } else {
+                wrongCount++;
+                recordTableOutcome(f1, f2, false);
                 playAudioEffect('wrong');
                 let penalty = parseInt(snakeSettings.wrongPenalty) || 20;
                 score = Math.max(0, score - penalty);
@@ -719,8 +749,14 @@
             let correctVal = currentPuzzle.answer;
             let type = currentPuzzle.type;
             let target = currentPuzzle.toPos;
+            const f1 = currentPuzzle.f1 || 1;
+            const f2 = currentPuzzle.f2 || 1;
+
+            totalQuestions++;
 
             if (userVal === correctVal) {
+                correctCount++;
+                recordTableOutcome(f1, f2, true);
                 playAudioEffect('correct');
                 confetti({ particleCount: 50, spread: 60, origin: { y: 0.6 } });
                 
@@ -741,6 +777,8 @@
                     showDiceSection();
                 }
             } else {
+                wrongCount++;
+                recordTableOutcome(f1, f2, false);
                 playAudioEffect('wrong');
                 let wrongPen = parseInt(snakeSettings.wrongPenalty) || 20;
                 let snakePen = parseInt(snakeSettings.snakePenalty) || 50;
@@ -770,6 +808,63 @@
             }
         }
 
+        async function saveSessionAndTableStats() {
+            const cprVal = String(studentData.cpr || studentData.id || studentData.name);
+            const clsVal = String(studentData.cls || '');
+            const nameVal = String(studentData.name || '');
+
+            try {
+                const { data: sessionRow, error: sessErr } = await supabaseClient
+                    .from('student_sessions')
+                    .insert([{
+                        cpr: cprVal,
+                        student_name: nameVal,
+                        cls: clsVal,
+                        game_key: 'snake',
+                        correct_count: correctCount,
+                        wrong_count: wrongCount,
+                        total_questions: totalQuestions,
+                        score: score
+                    }])
+                    .select('id')
+                    .single();
+
+                if (sessErr) {
+                    console.error('خطأ في حفظ جلسة الثعبان:', sessErr);
+                    return;
+                }
+
+                const sessionId = sessionRow ? sessionRow.id : null;
+                const statsRows = [];
+                for (let t = 1; t <= 12; t++) {
+                    const st = tableStatsMap[t] || { correct: 0, wrong: 0 };
+                    if (st.correct > 0 || st.wrong > 0) {
+                        statsRows.push({
+                            session_id: sessionId,
+                            cpr: cprVal,
+                            student_name: nameVal,
+                            cls: clsVal,
+                            game_key: 'snake',
+                            multiplication_table: t,
+                            correct_count: st.correct,
+                            wrong_count: st.wrong
+                        });
+                    }
+                }
+
+                if (statsRows.length > 0) {
+                    const { error: statsErr } = await supabaseClient
+                        .from('student_table_stats')
+                        .insert(statsRows);
+                    if (statsErr) {
+                        console.error('خطأ في حفظ إحصاءات الجداول:', statsErr);
+                    }
+                }
+            } catch (e) {
+                console.error('خطأ أثناء حفظ بيانات الجلسة والأخطاء:', e);
+            }
+        }
+
         async function endGameWin() {
             clearInterval(timerInterval);
             confetti({ particleCount: 120, spread: 90, origin: { y: 0.4 } });
@@ -796,6 +891,8 @@
 
                 const { error: insertError } = await supabaseClient.from('snake_scores').insert([insertPayload]);
                 if (insertError) throw insertError;
+
+                await saveSessionAndTableStats();
                 
                 const { data: topScores, error: fetchError } = await supabaseClient.from('snake_scores')
                     .select('*')
