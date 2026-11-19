@@ -251,6 +251,28 @@
         let score = 0, timeLeft = customSettings.gameTime, steps = 0, currentCorrectAnswer = 0;
         let currentInput = '', helpRemaining = 2, isUsingOptions = false, gameActive = false;
         let timerInterval = null;
+        let currentFactor1 = 1, currentFactor2 = 1;
+        let correctCount = 0, wrongCount = 0, totalQuestions = 0;
+        let tableStatsMap = {};
+
+        function resetSessionTracking() {
+            correctCount = 0;
+            wrongCount = 0;
+            totalQuestions = 0;
+            tableStatsMap = {};
+            for (let t = 1; t <= 12; t++) {
+                tableStatsMap[t] = { correct: 0, wrong: 0 };
+            }
+        }
+
+        function recordTableOutcome(f1, f2, isCorrect) {
+            const largerTable = Math.max(parseInt(f1, 10) || 1, parseInt(f2, 10) || 1);
+            if (largerTable >= 1 && largerTable <= 12) {
+                if (!tableStatsMap[largerTable]) tableStatsMap[largerTable] = { correct: 0, wrong: 0 };
+                if (isCorrect) tableStatsMap[largerTable].correct += 1;
+                else tableStatsMap[largerTable].wrong += 1;
+            }
+        }
 
         async function startTheGameSession() {
             await loadCloudSettings();
@@ -281,6 +303,7 @@
             score = 0; timeLeft = customSettings.gameTime; steps = 0;
             helpRemaining = 2;
             gameActive = true;
+            resetSessionTracking();
             updateHelpButtonState();
             updateHUD();
             updateClimberPosition();
@@ -328,6 +351,8 @@
 
             let num1 = Math.floor(Math.random() * maxTable) + 1;
             let num2 = Math.floor(Math.random() * 9) + 1;
+            currentFactor1 = num1;
+            currentFactor2 = num2;
             let totalProduct = num1 * num2;
 
             let qMode = customSettings.questionType || 'both';
@@ -448,7 +473,10 @@
 
         function checkAnswer(selectedOpt, correctVal, usedHelp) {
             if (!gameActive) return;
+            totalQuestions++;
             if (selectedOpt === correctVal) {
+                correctCount++;
+                recordTableOutcome(currentFactor1, currentFactor2, true);
                 playSound('step');
                 let pointsEarned = parseInt(customSettings.correctPoints || 100);
                 if (usedHelp) pointsEarned = Math.floor(pointsEarned / 2);
@@ -459,6 +487,8 @@
                 updateHUD();
                 generateNewPuzzle();
             } else {
+                wrongCount++;
+                recordTableOutcome(currentFactor1, currentFactor2, false);
                 playSound('wrong');
                 timeLeft = Math.max(0, timeLeft - parseInt(customSettings.penaltySeconds || 5));
                 showPenaltyMessage();
@@ -469,6 +499,63 @@
                     gameActive = false;
                     endGame(false);
                 }
+            }
+        }
+
+        async function saveSessionAndTableStats() {
+            const cprVal = String(studentData.cpr || studentData.id || studentData.name);
+            const clsVal = String(studentData.cls || '');
+            const nameVal = String(studentData.name || '');
+
+            try {
+                const { data: sessionRow, error: sessErr } = await supabaseClient
+                    .from('student_sessions')
+                    .insert([{
+                        cpr: cprVal,
+                        student_name: nameVal,
+                        cls: clsVal,
+                        game_key: 'mountain',
+                        correct_count: correctCount,
+                        wrong_count: wrongCount,
+                        total_questions: totalQuestions,
+                        score: score
+                    }])
+                    .select('id')
+                    .single();
+
+                if (sessErr) {
+                    console.error('خطأ في حفظ جلسة الجبل:', sessErr);
+                    return;
+                }
+
+                const sessionId = sessionRow ? sessionRow.id : null;
+                const statsRows = [];
+                for (let t = 1; t <= 12; t++) {
+                    const st = tableStatsMap[t] || { correct: 0, wrong: 0 };
+                    if (st.correct > 0 || st.wrong > 0) {
+                        statsRows.push({
+                            session_id: sessionId,
+                            cpr: cprVal,
+                            student_name: nameVal,
+                            cls: clsVal,
+                            game_key: 'mountain',
+                            multiplication_table: t,
+                            correct_count: st.correct,
+                            wrong_count: st.wrong
+                        });
+                    }
+                }
+
+                if (statsRows.length > 0) {
+                    const { error: statsErr } = await supabaseClient
+                        .from('student_table_stats')
+                        .insert(statsRows);
+                    if (statsErr) {
+                        console.error('خطأ في حفظ إحصاءات الجداول:', statsErr);
+                    }
+                }
+            } catch (e) {
+                console.error('خطأ أثناء حفظ بيانات الجلسة والأخطاء:', e);
             }
         }
 
@@ -485,6 +572,7 @@
                 await supabaseClient.from('mountain_scores').insert([{
                     student_name: studentData.name, cls: studentData.cls, points: score, weekly_points: score
                 }]);
+                await saveSessionAndTableStats();
                 document.getElementById('saveStatus').textContent = '✅ تم الحفظ بنجاح!';
                 loadLeaderboardInModal();
             } catch (err) {
