@@ -63,7 +63,6 @@
             border-color: var(--primary);
         }
 
-        /* قائمة منسدلة متعددة لاختيار الطلاب */
         .multi-dropdown { position: relative; width: 100%; }
         .multi-dropdown-btn {
             width: 100%;
@@ -137,14 +136,34 @@
         .btn-red:hover { background: #b71c1c; }
         .btn-sm { padding: 5px 12px; font-size: 12px; border-radius: 6px; }
 
-        .report-preview-area { background: white; padding: 15px; border-radius: 12px; margin-top: 15px; border: 1px solid #e2e8f0; overflow-x: auto; }
+        .inline-preview-box {
+            margin-top: 18px;
+            padding-top: 15px;
+            border-top: 2px dashed #e2e8f0;
+        }
+        .inline-preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .inline-preview-header h3 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .report-preview-area { background: white; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; overflow-x: auto; }
 
         .report-single-page {
             box-sizing: border-box;
             background: #ffffff;
             border: 1px solid #cbd5e1;
             border-radius: 10px;
-            padding: 12px 16px;
+            padding: 14px 18px;
             margin-bottom: 25px;
             width: 100%;
             max-width: 100%;
@@ -170,81 +189,80 @@
             display: flex;
             justify-content: space-between;
             background: #fdf2f8;
-            padding: 5px 10px;
+            padding: 6px 12px;
             border-radius: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             font-size: 9pt;
             font-weight: bold;
             color: #831843;
             border: 1px solid #fbcfe8;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 6px;
         }
 
-        .student-grid-2col {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        /* ترتيب عمودي للأقسام: الأخطاء -> نقاط الضعف -> الرسم البياني */
+        .student-vertical-stack {
+            display: flex;
+            flex-direction: column;
             gap: 12px;
             margin-bottom: 10px;
-        }
-        @media (max-width: 768px) {
-            .student-grid-2col { grid-template-columns: 1fr; }
         }
 
         .sub-box {
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-            padding: 8px 10px;
+            padding: 10px 12px;
             background: #fff;
+            width: 100%;
         }
         .sub-box h3 {
-            margin: 0 0 6px 0;
-            font-size: 9.5pt;
+            margin: 0 0 8px 0;
+            font-size: 10pt;
             font-weight: 800;
             color: #0f172a;
             border-bottom: 1px solid #f1f5f9;
-            padding-bottom: 4px;
+            padding-bottom: 5px;
         }
 
-        .weakness-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .weakness-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
         .weak-badge {
             background: #fee2e2;
             color: #991b1b;
             border: 1px solid #fca5a5;
-            padding: 2px 8px;
+            padding: 3px 10px;
             border-radius: 6px;
-            font-size: 8.5pt;
+            font-size: 9pt;
             font-weight: bold;
         }
         .no-weak-badge {
             background: #dcfce7;
             color: #166534;
             border: 1px solid #86efac;
-            padding: 3px 10px;
+            padding: 4px 12px;
             border-radius: 6px;
-            font-size: 8.5pt;
+            font-size: 9pt;
             font-weight: bold;
         }
 
-        .table-container { margin-bottom: 10px; width: 100%; overflow-x: auto; }
-        .report-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; min-width: 380px; }
-        .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 4px 6px; text-align: center; line-height: 1.2; }
-        .report-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 8.8pt; border-bottom: 2px solid var(--primary); }
+        .table-container { margin-bottom: 4px; width: 100%; overflow-x: auto; }
+        .report-table { width: 100%; border-collapse: collapse; font-size: 9pt; min-width: 360px; }
+        .report-table th, .report-table td { border: 1px solid #cbd5e1; padding: 5px 8px; text-align: center; line-height: 1.25; }
+        .report-table th { background: #f8fafc; color: #0f172a; font-weight: 800; font-size: 9.2pt; border-bottom: 2px solid var(--primary); }
         .report-table tr:nth-child(even) { background-color: #fafaf9; }
 
-        .chart-wrap { position: relative; height: 155px; width: 100%; }
+        .chart-wrap { position: relative; height: 170px; width: 100%; }
 
         .footer-table {
             width: 100%;
             border-collapse: collapse;
             border: none !important;
             background: #ffffff;
-            margin-top: 8px;
-            padding-top: 5px;
+            margin-top: 10px;
+            padding-top: 6px;
             border-top: 1px dashed #cbd5e1 !important;
         }
         .footer-table td { border: none !important; padding: 2px; text-align: center; vertical-align: top; width: 20%; background: transparent; }
-        .footer-editable-cell { width: 100%; min-height: 32px; background: transparent; border: none; text-align: center; font-family: 'Cairo'; font-weight: bold; resize: none; outline: none; line-height: 1.15; color: #334155; }
+        .footer-editable-cell { width: 100%; min-height: 35px; background: transparent; border: none; text-align: center; font-family: 'Cairo'; font-weight: bold; resize: none; outline: none; line-height: 1.15; color: #334155; }
 
         .hidden { display: none !important; }
         footer.author-footer { text-align: center; padding: 15px; color: #64748b; font-weight: bold; margin-top: 20px; }
@@ -252,11 +270,12 @@
         @media print {
             @page { size: A4 portrait; margin: 6mm; }
             body { background: white !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
-            header, .section-card:not(#reportOutputCard), .btn-row, .nav-tabs, footer.author-footer, #reportHeaderTitleCard, #admin-nav-container, nav { display: none !important; }
+            header, .section-card > .form-row, .section-card > h2, .inline-preview-header, .btn-row, .nav-tabs, footer.author-footer, #admin-nav-container, nav { display: none !important; }
+            .section-card { box-shadow: none !important; padding: 0 !important; margin: 0 !important; background: transparent !important; }
+            .inline-preview-box { border: none !important; margin: 0 !important; padding: 0 !important; }
             .container { max-width: 100% !important; padding: 0 !important; margin: 0 !important; width: 100% !important; }
             .report-preview-area { box-shadow: none !important; padding: 0 !important; margin: 0 !important; border: none !important; background: transparent !important; }
-            .student-grid-2col { grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
-            .chart-wrap { height: 135px !important; }
+            .chart-wrap { height: 150px !important; }
 
             .report-single-page {
                 margin: 0 !important;
@@ -283,66 +302,21 @@
     <div class="container">
         <header>
             <h1 id="welcomeTitle">🎯 متابعة الطلاب ونقاط الضعف</h1>
-            <button class="btn btn-red" onclick="logout()">تسجيل الخروج 🚪</button>
+            <button class="btn btn-red" type="button" onclick="logout()">تسجيل الخروج 🚪</button>
         </header>
 
         <div id="admin-nav-container"></div>
-
-        <!-- إعدادات الرأس والتذييل المنسوخة من صفحة التقارير -->
-        <div class="section-card hidden" id="adminSettingsCard">
-            <h2>⚙️ إعدادات الترويسة والفوتر الافتراضية (مزامنة سحابية)</h2>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>رفع شعار رأس التقرير:</label>
-                    <input type="file" id="logoUploadInput" accept="image/*" onchange="handleLogoUpload(event)">
-                </div>
-                <div class="form-group">
-                    <label>حجم خط خلايا التذييل:</label>
-                    <select id="footerFontSize" onchange="saveCloudSettings()">
-                        <option value="8pt">صغير جداً (8 نقطة)</option>
-                        <option value="8.5pt" selected>صغير (8.5 نقطة)</option>
-                        <option value="9.5pt">متوسط (9.5 نقطة)</option>
-                        <option value="10.5pt">كبير (10.5 نقطة)</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group">
-                    <label>نص الترويسة (اليمين):</label>
-                    <textarea id="headerRightText" rows="3" oninput="saveCloudSettings()">مملكة البحرين
-وزارة التربية والتعليم
-مدرسة اليرموك الابتدائية للبنين</textarea>
-                </div>
-                <div class="form-group">
-                    <label>نص الترويسة (اليسار):</label>
-                    <textarea id="headerLeftText" rows="3" oninput="saveCloudSettings()">العام الدراسي: 2025-2026
-قسم الرياضيات والعلوم</textarea>
-                </div>
-            </div>
-
-            <div class="form-group" style="margin-top: 10px;">
-                <label>محتوى خانات التذييل الـ 5 الافتراضية (تقبل أكثر من سطر):</label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 5px;">
-                    <textarea id="foot1" rows="3" placeholder="الخانة 1" oninput="saveCloudSettings()"></textarea>
-                    <textarea id="foot2" rows="3" placeholder="الخانة 2" oninput="saveCloudSettings()"></textarea>
-                    <textarea id="foot3" rows="3" placeholder="الخانة 3" oninput="saveCloudSettings()"></textarea>
-                    <textarea id="foot4" rows="3" placeholder="الخانة 4" oninput="saveCloudSettings()"></textarea>
-                    <textarea id="foot5" rows="3" placeholder="الخانة 5" oninput="saveCloudSettings()"></textarea>
-                </div>
-            </div>
-        </div>
 
         <!-- حد اعتبار نقاط الضعف للمدير والمشرف فقط -->
         <div class="section-card hidden" id="weaknessThresholdCard">
             <h2>🛡️ إعداد حد نقاط الضعف (للمدير والمشرف فقط)</h2>
             <div class="form-row" style="margin-bottom: 0; align-items: center;">
-                <div class="form-group" style="max-width: 320px;">
+                <div class="form-group" style="max-width: 340px;">
                     <label>عدد الأخطاء المطلوب ليُعتبر الجدول نقطة ضعف (الافتراضي 5 — أكبر من هذا العدد):</label>
                     <input type="number" id="weaknessThresholdInput" min="1" max="100" value="5" onchange="saveWeaknessThreshold()">
                 </div>
                 <span style="font-size: 12.5px; color: #64748b; font-weight: bold;">
-                    يتم رصد جميع الجداول مع عدد الأخطاء، وأي جدول يتجاوز هذا العدد يُسجل ضمن نقاط الضعف.
+                    يظهر في جدول الأخطاء الجداول التي بها أخطاء فقط، وأي جدول يتجاوز هذا العدد يُسجل ضمن نقاط الضعف.
                 </span>
             </div>
         </div>
@@ -393,7 +367,16 @@
                     <label class="checkbox-label"><input type="checkbox" id="optShowTeacher" checked> إظهار اسم المعلم</label>
                     <label class="checkbox-label"><input type="checkbox" id="optShowDate" checked> إظهار تاريخ التصدير</label>
                 </div>
-                <button class="btn" onclick="generateStudentReports()">⚡ توليد تقارير الطلاب</button>
+                <button class="btn" type="button" onclick="generateStudentReports()">⚡ توليد تقارير الطلاب</button>
+            </div>
+
+            <!-- معاينة تقرير الطالب مباشرة أسفل القسم -->
+            <div class="inline-preview-box hidden" id="studentReportPreviewBox">
+                <div class="inline-preview-header">
+                    <h3>معاينة تقرير الطالب 📄</h3>
+                    <button class="btn btn-dark btn-sm" type="button" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+                </div>
+                <div class="report-preview-area" id="studentReportPreviewContent"></div>
             </div>
         </div>
 
@@ -425,19 +408,17 @@
                     <label class="checkbox-label"><input type="checkbox" id="tblOptShowTeacher" checked> إظهار اسم المعلم</label>
                     <label class="checkbox-label"><input type="checkbox" id="tblOptShowDate" checked> إظهار تاريخ التصدير</label>
                 </div>
-                <button class="btn" onclick="generateTableFollowupReports()">⚡ توليد متابعة الجداول</button>
+                <button class="btn" type="button" onclick="generateTableFollowupReports()">⚡ توليد متابعة الجداول</button>
             </div>
-        </div>
 
-        <!-- منطقة عرض وطباعة التقارير -->
-        <div class="section-card hidden" id="reportOutputCard">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;" id="reportHeaderTitleCard">
-                <h2 style="border: none; margin: 0; padding: 0;">معاينة وطباعة التقارير 📄</h2>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="btn btn-dark" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+            <!-- معاينة المتابعة بالجدول مباشرة أسفل القسم -->
+            <div class="inline-preview-box hidden" id="tableFollowupPreviewBox">
+                <div class="inline-preview-header">
+                    <h3>معاينة المتابعة بالجدول 📄</h3>
+                    <button class="btn btn-dark btn-sm" type="button" onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
                 </div>
+                <div class="report-preview-area" id="tableFollowupPreviewContent"></div>
             </div>
-            <div class="report-preview-area" id="reportPreviewContent"></div>
         </div>
     </div>
 
@@ -464,6 +445,7 @@
         let weaknessThreshold = 5;
         let activeCharts = [];
 
+        // إعدادات الترويسة والتذييل منسوخة من صفحة التقارير
         let cloudSettings = {
             logo: '',
             headerRight: 'مملكة البحرين\nوزارة التربية والتعليم\nمدرسة اليرموك الابتدائية للبنين',
@@ -495,9 +477,6 @@
             const roleAr = role === 'admin' ? 'مدير النظام' : (role === 'supervisor' ? 'مشرف' : 'معلم');
             document.getElementById('welcomeTitle').textContent = `متابعة الطلاب (${currentUser.name || 'مستخدم'} - ${roleAr})`;
 
-            if (role === 'admin') {
-                document.getElementById('adminSettingsCard').classList.remove('hidden');
-            }
             if (role === 'admin' || role === 'supervisor') {
                 document.getElementById('weaknessThresholdCard').classList.remove('hidden');
             }
@@ -530,26 +509,14 @@
                 console.log('جاري جلب الإعدادات...');
             }
 
-            document.getElementById('foot1').value = cloudSettings.foot1;
-            document.getElementById('foot2').value = cloudSettings.foot2;
-            document.getElementById('foot3').value = cloudSettings.foot3;
-            document.getElementById('foot4').value = cloudSettings.foot4;
-            document.getElementById('foot5').value = cloudSettings.foot5;
-            document.getElementById('footerFontSize').value = cloudSettings.fSize;
-            document.getElementById('headerRightText').value = cloudSettings.headerRight;
-            document.getElementById('headerLeftText').value = cloudSettings.headerLeft;
-            document.getElementById('weaknessThresholdInput').value = weaknessThreshold;
+            const threshInput = document.getElementById('weaknessThresholdInput');
+            if (threshInput) threshInput.value = weaknessThreshold;
         }
 
-        async function saveCloudSettings() {
-            cloudSettings.foot1 = document.getElementById('foot1').value;
-            cloudSettings.foot2 = document.getElementById('foot2').value;
-            cloudSettings.foot3 = document.getElementById('foot3').value;
-            cloudSettings.foot4 = document.getElementById('foot4').value;
-            cloudSettings.foot5 = document.getElementById('foot5').value;
-            cloudSettings.fSize = document.getElementById('footerFontSize').value;
-            cloudSettings.headerRight = document.getElementById('headerRightText').value;
-            cloudSettings.headerLeft = document.getElementById('headerLeftText').value;
+        async function saveWeaknessThreshold() {
+            const val = parseInt(document.getElementById('weaknessThresholdInput').value, 10);
+            weaknessThreshold = (!isNaN(val) && val >= 1) ? val : 5;
+            document.getElementById('weaknessThresholdInput').value = weaknessThreshold;
 
             try {
                 await supabaseClient.from('settings').upsert([{
@@ -566,27 +533,7 @@
                     weakness_error_threshold: weaknessThreshold
                 }], { onConflict: 'key' });
             } catch (err) {
-                console.error('خطأ في حفظ الإعدادات سحابياً:', err);
-            }
-        }
-
-        async function saveWeaknessThreshold() {
-            const val = parseInt(document.getElementById('weaknessThresholdInput').value, 10);
-            weaknessThreshold = (!isNaN(val) && val >= 1) ? val : 5;
-            document.getElementById('weaknessThresholdInput').value = weaknessThreshold;
-            await saveCloudSettings();
-        }
-
-        async function handleLogoUpload(event) {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = async function (e) {
-                    cloudSettings.logo = e.target.result;
-                    await saveCloudSettings();
-                    alert('✅ تم حفظ وتثبيت الشعار في السحابة بنجاح!');
-                };
-                reader.readAsDataURL(file);
+                console.error('خطأ في حفظ حد الضعف سحابياً:', err);
             }
         }
 
@@ -655,7 +602,6 @@
                     } else {
                         selectedSectionsSet.add(sec);
                     }
-                    // إزالة الطلاب غير التابعين للصفوف المحددة
                     const validCprs = new Set(
                         allStudentsList
                             .filter(s => selectedSectionsSet.has(String(s.cls).trim()))
@@ -778,12 +724,16 @@
                 start.setDate(1);
                 start.setHours(0, 0, 0, 0);
             } else {
-                // أسبوع (الافتراضي)
                 const dayOfWeek = now.getDay();
                 start.setDate(now.getDate() - dayOfWeek);
                 start.setHours(0, 0, 0, 0);
             }
             return start;
+        }
+
+        function getRecordDate(row) {
+            const raw = row.created_at || row.played_at || row.recorded_at;
+            return raw ? new Date(raw) : null;
         }
 
         function destroyActiveCharts() {
@@ -821,9 +771,6 @@
         }
 
         async function generateStudentReports() {
-            const navContainer = document.getElementById('admin-nav-container');
-            if (navContainer) navContainer.remove();
-
             if (selectedSectionsSet.size === 0) {
                 alert('⚠️ يرجى اختيار صف واحد على الأقل.');
                 return;
@@ -849,19 +796,32 @@
             }
 
             destroyActiveCharts();
-            const container = document.getElementById('reportPreviewContent');
+            const previewBox = document.getElementById('studentReportPreviewBox');
+            const container = document.getElementById('studentReportPreviewContent');
             container.innerHTML = '<div style="text-align:center; padding:20px;">جاري توليد تقارير الطلاب...</div>';
-            document.getElementById('reportOutputCard').classList.remove('hidden');
+            previewBox.classList.remove('hidden');
 
             try {
                 const cprs = targetStudents.map(s => String(s.cpr));
                 const [sessionsRes, statsRes] = await Promise.all([
-                    supabaseClient.from('student_sessions').select('*').in('cpr', cprs).gte('played_at', startDate.toISOString()).order('played_at', { ascending: true }),
-                    supabaseClient.from('student_table_stats').select('*').in('cpr', cprs).gte('recorded_at', startDate.toISOString())
+                    supabaseClient.from('student_sessions').select('*').in('cpr', cprs),
+                    supabaseClient.from('student_table_stats').select('*').in('cpr', cprs)
                 ]);
 
-                const sessionsData = sessionsRes.data || [];
-                const statsData = statsRes.data || [];
+                const sessionsData = (sessionsRes.data || []).filter(s => {
+                    const dt = getRecordDate(s);
+                    return !dt || dt >= startDate;
+                }).sort((a, b) => {
+                    const da = getRecordDate(a)?.getTime() || 0;
+                    const db = getRecordDate(b)?.getTime() || 0;
+                    return da - db;
+                });
+
+                const statsData = (statsRes.data || []).filter(x => {
+                    const dt = getRecordDate(x);
+                    return !dt || dt >= startDate;
+                });
+
                 const periodLabel = period === 'day' ? 'يوم' : (period === 'month' ? 'شهر' : 'أسبوع');
                 const exportDateStr = new Date().toLocaleDateString('ar-BH');
 
@@ -886,21 +846,28 @@
                         }
                     });
 
-                    // ترتيب تنازلي حسب عدد الأخطاء
-                    const sortedTables = Object.entries(tableErrorsMap)
+                    // إظهار الجداول التي بها أخطاء فقط (> 0) مرتبة تنازلياً حسب عدد الأخطاء
+                    const errorTablesOnly = Object.entries(tableErrorsMap)
                         .map(([tbl, errs]) => ({ tbl: parseInt(tbl, 10), errs }))
+                        .filter(item => item.errs > 0)
                         .sort((a, b) => b.errs - a.errs || a.tbl - b.tbl);
 
                     // نقاط الضعف: أكبر من الحد المحدد (الافتراضي 5)
-                    const weakTables = sortedTables.filter(item => item.errs > weaknessThreshold);
+                    const weakTables = errorTablesOnly.filter(item => item.errs > weaknessThreshold);
 
+                    // الرسم البياني: نسبة الأخطاء في الجلسات
                     const chartId = `studentChart_${idx}_${Date.now()}`;
                     const sessionLabels = stSessions.map((s, i) => {
-                        const d = s.played_at ? new Date(s.played_at).toLocaleDateString('ar-BH', { month: 'numeric', day: 'numeric' }) : `جلسة ${i + 1}`;
-                        return `${d} (${s.game_key || ''})`;
+                        const dt = getRecordDate(s);
+                        const dStr = dt ? dt.toLocaleDateString('ar-BH', { month: 'numeric', day: 'numeric' }) : `جلسة ${i + 1}`;
+                        return `${dStr} (${s.game_key || ''})`;
                     });
-                    const sessionWrongCounts = stSessions.map(s => parseInt(s.wrong_count, 10) || 0);
-                    chartConfigs.push({ chartId, labels: sessionLabels, data: sessionWrongCounts });
+                    const sessionErrorRates = stSessions.map(s => {
+                        const wrong = parseInt(s.wrong_count, 10) || 0;
+                        const totalQ = parseInt(s.total_questions, 10) || ((parseInt(s.correct_count, 10) || 0) + wrong);
+                        return totalQ > 0 ? Math.round((wrong / totalQ) * 100) : 0;
+                    });
+                    chartConfigs.push({ chartId, labels: sessionLabels, data: sessionErrorRates });
 
                     html += `<div class="report-single-page">`;
                     html += buildHeaderHtml(`تقرير متابعة الطالب (${periodLabel})`);
@@ -913,58 +880,60 @@
                         </div>
                     `;
 
-                    html += `<div class="student-grid-2col">`;
+                    html += `<div class="student-vertical-stack">`;
 
-                    // 1- عدد الأخطاء في كل جدول
+                    // 1- الأخطاء (الجداول التي بها أخطاء فقط)
                     html += `
                         <div class="sub-box">
-                            <h3>1- عدد الأخطاء في كل جدول (تنازلياً)</h3>
-                            <div class="table-container" style="margin-bottom:0;">
-                                <table class="report-table" style="min-width:100%;">
-                                    <thead>
-                                        <tr><th>الجدول</th><th>عدد الأخطاء</th><th>الحالة</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        ${sortedTables.map(item => {
-                                            const isWeak = item.errs > weaknessThreshold;
-                                            return `
-                                                <tr>
-                                                    <td><b>جدول ${item.tbl}</b></td>
-                                                    <td><b>${item.errs}</b></td>
-                                                    <td>${isWeak ? `<span style="color:#b91c1c; font-weight:bold;">نقطة ضعف</span>` : `<span style="color:#475569;">مرصود</span>`}</td>
-                                                </tr>
-                                            `;
-                                        }).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
+                            <h3>1- الأخطاء (الجداول التي بها أخطاء فقط)</h3>
+                            ${errorTablesOnly.length > 0
+                                ? `
+                                    <div class="table-container">
+                                        <table class="report-table">
+                                            <thead>
+                                                <tr><th>الجدول</th><th>عدد الأخطاء</th></tr>
+                                            </thead>
+                                            <tbody>
+                                                ${errorTablesOnly.map(item => `
+                                                    <tr>
+                                                        <td><b>جدول ${item.tbl}</b></td>
+                                                        <td style="color:#b91c1c; font-weight:900;">${item.errs}</td>
+                                                    </tr>
+                                                `).join('')}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                `
+                                : `<p style="text-align:center; color:#166534; font-size:9pt; margin:8px 0; font-weight:bold;">لا توجد أخطاء مسجلة في أي جدول خلال هذه المدة.</p>`
+                            }
                         </div>
                     `;
 
-                    // 2- نقاط الضعف + 3- متابعة الجلسات حسب الأخطاء
+                    // 2- نقاط الضعف
                     html += `
-                        <div style="display:flex; flex-direction:column; gap:10px;">
-                            <div class="sub-box">
-                                <h3>2- نقاط الضعف (أكبر من ${weaknessThreshold} أخطاء)</h3>
-                                <div class="weakness-tags">
-                                    ${weakTables.length > 0
-                                        ? weakTables.map(w => `<span class="weak-badge">جدول ${w.tbl} (${w.errs} أخطاء)</span>`).join('')
-                                        : `<span class="no-weak-badge">لا توجد جداول متجاوزة للحد (${weaknessThreshold} أخطاء)</span>`
-                                    }
-                                </div>
-                            </div>
-
-                            <div class="sub-box" style="flex:1;">
-                                <h3>3- متابعة الجلسات حسب الأخطاء</h3>
-                                ${stSessions.length > 0
-                                    ? `<div class="chart-wrap"><canvas id="${chartId}"></canvas></div>`
-                                    : `<p style="text-align:center; color:#64748b; font-size:8.5pt; margin:20px 0;">لا توجد جلسات مسجلة خلال هذه المدة.</p>`
+                        <div class="sub-box">
+                            <h3>2- نقاط الضعف (أكبر من ${weaknessThreshold} أخطاء)</h3>
+                            <div class="weakness-tags">
+                                ${weakTables.length > 0
+                                    ? weakTables.map(w => `<span class="weak-badge">جدول ${w.tbl} (${w.errs} أخطاء)</span>`).join('')
+                                    : `<span class="no-weak-badge">لا توجد جداول متجاوزة للحد (${weaknessThreshold} أخطاء)</span>`
                                 }
                             </div>
                         </div>
                     `;
 
-                    html += `</div>`; // نهاية student-grid-2col
+                    // 3- الرسم البياني (نسبة الأخطاء في الجلسات)
+                    html += `
+                        <div class="sub-box">
+                            <h3>3- الرسم البياني (نسبة الأخطاء في الجلسات %)</h3>
+                            ${stSessions.length > 0
+                                ? `<div class="chart-wrap"><canvas id="${chartId}"></canvas></div>`
+                                : `<p style="text-align:center; color:#64748b; font-size:9pt; margin:14px 0;">لا توجد جلسات مسجلة خلال هذه المدة.</p>`
+                            }
+                        </div>
+                    `;
+
+                    html += `</div>`; // نهاية student-vertical-stack
                     html += buildFooterHtml();
                     html += `</div>`; // نهاية report-single-page
                 });
@@ -980,7 +949,7 @@
                         data: {
                             labels: cfg.labels,
                             datasets: [{
-                                label: 'عدد الأخطاء في الجلسة',
+                                label: 'نسبة الأخطاء (%)',
                                 data: cfg.data,
                                 borderColor: '#d81b60',
                                 backgroundColor: 'rgba(216, 27, 96, 0.15)',
@@ -995,7 +964,14 @@
                             maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
                             scales: {
-                                y: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Cairo', size: 9 } } },
+                                y: {
+                                    beginAtZero: true,
+                                    max: 100,
+                                    ticks: {
+                                        callback: (val) => `${val}%`,
+                                        font: { family: 'Cairo', size: 9 }
+                                    }
+                                },
                                 x: { ticks: { font: { family: 'Cairo', size: 8.5 } } }
                             }
                         }
@@ -1010,9 +986,6 @@
         }
 
         async function generateTableFollowupReports() {
-            const navContainer = document.getElementById('admin-nav-container');
-            if (navContainer) navContainer.remove();
-
             if (selectedTablesSet.size === 0) {
                 alert('⚠️ يرجى اختيار جدول ضرب واحد على الأقل.');
                 return;
@@ -1029,10 +1002,10 @@
             const showTeacher = document.getElementById('tblOptShowTeacher').checked;
             const showDate = document.getElementById('tblOptShowDate').checked;
 
-            destroyActiveCharts();
-            const container = document.getElementById('reportPreviewContent');
+            const previewBox = document.getElementById('tableFollowupPreviewBox');
+            const container = document.getElementById('tableFollowupPreviewContent');
             container.innerHTML = '<div style="text-align:center; padding:20px;">جاري توليد تقارير المتابعة بالجدول...</div>';
-            document.getElementById('reportOutputCard').classList.remove('hidden');
+            previewBox.classList.remove('hidden');
 
             try {
                 const allowedStudents = allStudentsList.filter(st => allowedSections.includes(String(st.cls || '').trim()));
@@ -1043,10 +1016,13 @@
                     .from('student_table_stats')
                     .select('*')
                     .in('cpr', cprs)
-                    .in('multiplication_table', tablesArr)
-                    .gte('recorded_at', startDate.toISOString());
+                    .in('multiplication_table', tablesArr);
 
-                const rows = statsData || [];
+                const rows = (statsData || []).filter(r => {
+                    const dt = getRecordDate(r);
+                    return !dt || dt >= startDate;
+                });
+
                 const studentMap = new Map();
                 allowedStudents.forEach(s => studentMap.set(String(s.cpr), s));
 
@@ -1063,7 +1039,6 @@
                         }
                     });
 
-                    // جلب الطلاب الذين لديهم ضعف (> الحد المحدد) مرتبين حسب الصف أولاً ثم الاسم أبجدياً
                     const weakList = [];
                     Object.entries(errByStudent).forEach(([cprKey, errs]) => {
                         if (errs > weaknessThreshold) {
