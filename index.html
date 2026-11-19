@@ -129,7 +129,6 @@
         .student-nav-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 20px; border-top: 1px dashed #cbd5e1; padding-top: 20px; }
         .student-nav-actions .btn { max-width: 220px; }
 
-        /* نافذة الرقم الشخصي وتقرير الطالب */
         .modal-backdrop {
             position: fixed;
             inset: 0;
@@ -360,7 +359,6 @@
                 <button type="button" onclick="logoutStudentAndReturn()" class="btn btn-dark">🏠 العودة للرئيسية وتسجيل الخروج</button>
             </div>
 
-            <!-- منطقة عرض تقرير الطالب بعد التحقق من الرقم الشخصي -->
             <div id="studentReportPanel" class="student-report-panel hidden">
                 <div class="report-controls-bar">
                     <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -381,7 +379,6 @@
         </div>
     </div>
 
-    <!-- نافذة إدخال الرقم الشخصي للتحقق من الهوية -->
     <div id="cprModalBackdrop" class="modal-backdrop hidden">
         <div class="modal-card">
             <h3>🔒 التحقق من الرقم الشخصي</h3>
@@ -468,7 +465,6 @@
                     matched = rows.find(r => String(r.cpr || '').trim() === inputVal);
                 }
 
-                // إذا لم يُطابق مع cls فارغ أو مختلف، نحاول البحث بالاسم فقط
                 if (!matched) {
                     const { data: byName } = await supabaseClient
                         .from('students')
@@ -536,6 +532,13 @@
             return raw ? new Date(raw) : null;
         }
 
+        function matchesCurrentStudent(row) {
+            const cprVal = row.cpr !== undefined && row.cpr !== null ? String(row.cpr).trim() : '';
+            const nameVal = row.student_name !== undefined && row.student_name !== null ? String(row.student_name).trim() : '';
+            const targetName = String(studentData.name || '').trim();
+            return (verifiedCpr && cprVal === verifiedCpr) || (targetName && cprVal === targetName) || (targetName && nameVal === targetName);
+        }
+
         async function renderVerifiedStudentReport() {
             if (!verifiedCpr) {
                 openCprModal();
@@ -557,24 +560,29 @@
                 const startDate = getPeriodStartDate(period);
                 const periodLabel = period === 'day' ? 'يوم' : (period === 'month' ? 'شهر' : 'أسبوع');
                 const exportDateStr = new Date().toLocaleDateString('ar-BH');
+                const stName = String(studentData.name || '').trim();
+                const lookupKeys = Array.from(new Set([verifiedCpr, stName].filter(Boolean)));
 
                 const [sessionsRes, statsRes, teacherRes] = await Promise.all([
-                    supabaseClient.from('student_sessions').select('*').eq('cpr', verifiedCpr),
-                    supabaseClient.from('student_table_stats').select('*').eq('cpr', verifiedCpr),
+                    supabaseClient.from('student_sessions').select('*').in('cpr', lookupKeys),
+                    supabaseClient.from('student_table_stats').select('*').in('cpr', lookupKeys),
                     supabaseClient.from('class_teachers').select('teacher_name').eq('cls', studentData.cls || '').limit(1)
                 ]);
 
                 const stSessions = (sessionsRes.data || [])
+                    .filter(s => matchesCurrentStudent(s))
                     .filter(s => {
                         const dt = getRecordDate(s);
                         return !dt || dt >= startDate;
                     })
                     .sort((a, b) => (getRecordDate(a)?.getTime() || 0) - (getRecordDate(b)?.getTime() || 0));
 
-                const stStats = (statsRes.data || []).filter(r => {
-                    const dt = getRecordDate(r);
-                    return !dt || dt >= startDate;
-                });
+                const stStats = (statsRes.data || [])
+                    .filter(r => matchesCurrentStudent(r))
+                    .filter(r => {
+                        const dt = getRecordDate(r);
+                        return !dt || dt >= startDate;
+                    });
 
                 const teacherName = (teacherRes.data && teacherRes.data[0] && teacherRes.data[0].teacher_name)
                     ? teacherRes.data[0].teacher_name
@@ -589,7 +597,6 @@
                     }
                 });
 
-                // الجداول التي بها أخطاء فقط (> 0)
                 const errorTablesOnly = Object.entries(tableErrorsMap)
                     .map(([tbl, errs]) => ({ tbl: parseInt(tbl, 10), errs }))
                     .filter(item => item.errs > 0)
